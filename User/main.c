@@ -5,14 +5,18 @@
 	* @version：  v1.0
 *******************************************/
 
-
-
+/*
+*************************************************************************
+*                            头文件
+*************************************************************************
+*/
+/* kernel 头文件 */
 #include "stm32f10x.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "event_groups.h"
 #include "semphr.h"
-
+/* 外设驱动头文件 */
 #include "bsp_usart.h"
 #include "bsp_timer.h"
 #include "bsp_key.h"
@@ -25,8 +29,11 @@
 #include "GT30L32S4W.h"
 #include "bsp_beep.h"
 
-
-/*                           内核对象句柄                                */
+/*
+*************************************************************************
+*                            内核对象句柄 
+*************************************************************************
+*/
 
 SemaphoreHandle_t  BinarySem1_Handle = NULL;
 SemaphoreHandle_t  BinarySem2_Handle = NULL;
@@ -422,13 +429,13 @@ static void USART2_DealTask(void* parameter)
 	{
 		xSemaphoreTake(BinarySem2_Handle,portMAX_DELAY);
 		rdata = USART_ReceiveData(USART2);
-		if(3 == InterfaceFlag)                                          //多从机测试
+		if(3 == InterfaceFlag)                              //多从机测试
 		{
 			Connection_count--;
 			if((rdata&0x0f) == (PASSWORD1&0x0f)) 
 			{
-				Cur_Data = Time3value;
-				Show_Data(Cur_Data , 200+40*i);
+				Cur_Data = Time3value+(rdata&0xf0)*50;          
+				Show_Data(Cur_Data , 200+40*i);									//数据显示
 				if(Data2_Count <= 1000)
 				{
 					TestData_Save(Cur_Data);
@@ -438,8 +445,8 @@ static void USART2_DealTask(void* parameter)
 			}
 			else
 			{
-				Cur_Data = 5;
-				Show_Data(Cur_Data , 200+40*i);
+				Cur_Data = 1110;                                    //1.11s表示数据错误
+				Show_Data(Cur_Data , 200+40*i);                 //数据显示
 				USART_SendData(USART2,PASSWORD1);               /*给从机发送停止信号*/
 				i++;
 			}
