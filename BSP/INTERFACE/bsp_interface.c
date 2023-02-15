@@ -17,7 +17,6 @@ u16 Data1_Seek = 0;                    //加速数据定位值
 u16 Data2_Seek = 0;                    //单圈数据定位值
 u8 SelectFlag = 1;                     //选择标志
 u8 InterfaceFlag = 0;                 //界面标志
-vu8 StatusFlag = 0;                    //状态标志
 
 extern uint8_t Connection_count;
 
@@ -132,14 +131,16 @@ void Show_Data(u16 zdata, u16 pos_y)
 void Connection_Count_Show(void)                                   
 {
 	ILI9486_clear_screen(150, 10, 100, 44);
-	ILI9486_draw_rectangle(150, 10, 100, 44, BLUE);
+
 	ILI9486_showstring_Ch(20, 20, (u8*)"串口通讯：", GB2312_24X24);
 	if(Connection_count != 0)
 	{
+		ILI9486_draw_rectangle(150, 10, 50, 44, BLUE);
 		ILI9486_showstring_En(160, 20, (u8*)Connection_count, ASCII_12X24);
 	}
 	else
 	{
+		ILI9486_draw_rectangle(150, 10, 140, 44, BLUE);
 		ILI9486_showstring_Ch(160, 20, (u8*)"无从机连接", GB2312_24X24);
 	}
 }
@@ -160,9 +161,8 @@ void Slaver_Check_Interface(void)
 	ILI9486_clear_screen(0, 0, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH);
 	ILI9486_showstring_Ch(20, 220, (u8*)"串口通讯检测中", GB2312_24X24);
 	ILI9486_showstring_En(190, 220, (u8*)".......", ASCII_12X24);
-	
 	button[Determine].ButtonDraw(&button[Determine]);
-	button[Backtrack].ButtonDraw(&button[Backtrack]);
+	button[Backtrack1].ButtonDraw(&button[Backtrack1]);
 }
 
 
@@ -633,19 +633,19 @@ void Page_Up(u16* zdata, u16 DataCount)
 */
 void Empty_Records()
 {
-	InterfaceFlag += 2;
 	ILI9486_clear_screen(0, 80, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH - 40);//清屏
 	ILI9486_draw_rectangle(60, 200, 200, 80, BLUE);
 	if(InterfaceFlag == 6)
 	{
-		ILI9486_showstring_Ch(88, 210, (u8*)"确定清空加速", GB2312_24X24);
+		ILI9486_showstring_Ch(88, 210, (u8*)"确定清空单圈", GB2312_24X24);
 		ILI9486_showstring_Ch(98, 250, (u8*)"测试数据？", GB2312_24X24);
 	}
 	else if(InterfaceFlag == 7)
 	{
-		ILI9486_showstring_Ch(88, 210, (u8*)"确定清空单圈", GB2312_24X24);
+		ILI9486_showstring_Ch(88, 210, (u8*)"确定清空加速", GB2312_24X24);
 		ILI9486_showstring_Ch(98, 250, (u8*)"测试数据？", GB2312_24X24);
 	}
+	
 	button[Determine].start_x = button[Up].start_x;
 	button[Determine].start_y = button[Up].start_y;
 	button[Determine].end_x = button[Up].end_x;
@@ -658,23 +658,4 @@ void Empty_Records()
 	button[Determine].start_y = button[Backtrack].start_y;
 	button[Determine].end_x = button[Backtrack].end_x;
 	button[Determine].end_y = button[Backtrack].end_y;
-}
-
-
-/*
-	*函数名：Empty_Insure()
-	*功  能：清空确认
-	*参  数： 无
-	*返回值： 无
-	*作  者： 王峰
-	*日  期： 2020.10.24
-*/
-void  Empty_Insure(void)
-{
-	ILI9486_clear_screen(0, 80, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH);//清屏
-	ILI9486_draw_rectangle(100, 200, 120, 80, BLUE);
-	ILI9486_showstring_Ch(112, 210, (u8*)"数据删除", GB2312_24X24);
-	ILI9486_showstring_Ch(122, 250, (u8*)"成功！", GB2312_24X24);
-
-	button[Backtrack].ButtonDraw(&button[Backtrack]);
 }

@@ -26,8 +26,8 @@ BUTTON button[BUTTON_NUM];
 	*功  能：按键初始化函数
 	*参  数： 无
 	*返回值： 无
-	*作  者： 王峰
-	*日  期： 2020.10.24
+	*作  者： 王峰，罗成
+	*日  期： 2020.10.24，2023,02.15
 */
 void Button_Init(void)
 {
@@ -87,6 +87,14 @@ void Button_Init(void)
 	button[6].button_value = 6;
 	button[6].ButtonDraw = Button_Draw;
 	button[6].ButtonCommand = Empty_Fun;
+		//“返回”键(此返回用于检测从机数量)
+	button[7].start_x = screen_x_length - 320;
+	button[7].start_y = screen_y_length - 30;
+	button[7].end_x = screen_x_length - 270;
+	button[7].end_y = screen_y_length;
+	button[7].button_value = 7;
+	button[7].ButtonDraw = Button_Draw;
+	button[7].ButtonCommand = Backtrack1_Fun;
 }
 
 /*
@@ -124,8 +132,8 @@ void Button_Dealing(u8 KeyValue)
 	{
 		switch(KeyValue)
 		{
-			case 1: button[Determine].ButtonCommand(); break;
-			case 2: button[Backtrack].ButtonCommand(); break;
+			case 0: button[Backtrack1].ButtonCommand(); break;
+			case 3: button[Determine].ButtonCommand(); break;
 			default: break;
 		}
 	}
@@ -161,6 +169,24 @@ void Button_Dealing(u8 KeyValue)
 			default: break;
 		}
 	}
+	else if(6 == InterfaceFlag)
+	{
+		switch(KeyValue)
+		{
+			case 2: button[Backtrack].ButtonCommand(); break;
+			case 3: button[Determine].ButtonCommand(); break;
+			default: break;
+		}
+	}
+	else if(7 == InterfaceFlag)
+	{
+		switch(KeyValue)
+		{
+			case 2: button[Backtrack].ButtonCommand(); break;
+			case 3: button[Determine].ButtonCommand(); break;
+			default: break;
+		}
+	}
 }
 
 
@@ -172,7 +198,7 @@ void Button_Dealing(u8 KeyValue)
 	*作  者： 王峰
 	*日  期： 2020.10.24
 */
-void Button_Draw(void* button)
+static void Button_Draw(void* button)
 {
 	BUTTON* ptr = (BUTTON*)button;
 
@@ -193,6 +219,8 @@ void Button_Draw(void* button)
 		case Ready: sprintf(str, "%s", "准备"); break;
 
 		case Empty: sprintf(str, "%s", "清空"); break;
+		
+		case Backtrack1: sprintf(str, "%s", "返回"); break;
 
 		default: break;
 	}
@@ -209,9 +237,9 @@ void Button_Draw(void* button)
 	*data：   2023.1.15
 */
 
-void Determine_Fun(void)
+static void Determine_Fun(void)
 {
-	if (InterfaceFlag == 0)
+	if (0 == InterfaceFlag)
 	{
 		if (SelectFlag == 1)
 		{
@@ -237,12 +265,10 @@ void Determine_Fun(void)
 	}
 	else if (6 == InterfaceFlag)                                                       
 	{
-		Empty_Insure();
 		Data1_Count = 0;
 	}
 	else if (7 == InterfaceFlag)
 	{
-		Empty_Insure();
 		Data2_Count = 0;
 	}
 }
@@ -255,7 +281,7 @@ void Determine_Fun(void)
 	*author： 罗成
 	*data：   2023.1.15
 */
-void Backtrack_Fun(void)
+static void Backtrack_Fun(void)
 {
 	Timer3_Off();
 	if(InterfaceFlag <= 2)
@@ -278,7 +304,33 @@ void Backtrack_Fun(void)
 		InterfaceFlag = 3;
 		xSemaphoreGive(BinarySem3_Handle);
 	}
+	else if(InterfaceFlag == 6)
+	{
+		InterfaceFlag = 4;
+		xSemaphoreGive(BinarySem3_Handle);
+	}
+	else if(InterfaceFlag == 7)
+	{
+		InterfaceFlag = 5;
+		xSemaphoreGive(BinarySem3_Handle);
+	}
 }
+
+/*
+	*APIname：Backtrack1_Fun()
+	*brief：  返回功能函数
+	*param：  无
+	*retval： 无
+	*author： 罗成
+	*data：   2023.1.15
+*/
+static void Backtrack1_Fun(void)
+{
+	InterfaceFlag = 0;
+	Connection_count = 0;
+	xSemaphoreGive(BinarySem3_Handle);
+}
+
 
 /*
 	*函数名：View_Fun()
@@ -305,7 +357,7 @@ void View_Fun(void)
 }
 
 
-void Up_Fun(void)
+static void Up_Fun(void)
 {
 	if(InterfaceFlag == 0)                                          /* 主界面 */
 	{
@@ -318,7 +370,7 @@ void Up_Fun(void)
 		}
 		else
 		{
-			ILI9486_clear_screen(70, 220, 30, 30);
+			ILI9486_clear_screen(70, 140, 30, 30);
 			ILI9486_showstring_Ch(70, 180, (u8*)"◆", GB2312_24X24);
 		}
 	}
@@ -333,7 +385,7 @@ void Up_Fun(void)
 }
 
 
-void Down_Fun(void)
+static void Down_Fun(void)
 {
 	if(InterfaceFlag == 0)
 	{
@@ -341,7 +393,7 @@ void Down_Fun(void)
 		if (SelectFlag > 2) SelectFlag = 1;
 		if (SelectFlag == 1)
 		{
-			ILI9486_clear_screen(70, 220, 30, 30);
+			ILI9486_clear_screen(70, 180, 30, 30);
 			ILI9486_showstring_Ch(70, 140, (u8*)"◆", GB2312_24X24);
 		}
 		else
@@ -383,6 +435,7 @@ void Ready_Fun(void)
 
 void Empty_Fun(void)
 {
+	InterfaceFlag += 2;
 	Empty_Records();
 }
 

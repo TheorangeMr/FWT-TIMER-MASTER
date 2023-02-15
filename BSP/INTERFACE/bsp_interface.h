@@ -28,7 +28,6 @@ void Page_Down(u16* zdata, u16 DataCount);
 void Page_Up(u16* zdata, u16 DataCount);
 void Show_Data(u16 zdata, u16 pos_y);
 void Empty_Records(void);
-void Empty_Insure(void);
 
 
 extern u8 InterfaceFlag;                  //界面标志

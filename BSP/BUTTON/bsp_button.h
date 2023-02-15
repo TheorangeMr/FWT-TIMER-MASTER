@@ -29,22 +29,24 @@ typedef enum
 	Up,
 	Down,
 	Ready,
-	Empty
+	Empty,
+	Backtrack1
 }ButtonValue;
 
-#define BUTTON_NUM 7
+#define BUTTON_NUM 9
 
 
 void Button_Init(void);
 void Button_Dealing(u8 KeyValue);
-void Button_Draw(void* button);
-void Determine_Fun(void);
-void Backtrack_Fun(void);
+static void Button_Draw(void* button);
+static void Determine_Fun(void);
+static void Backtrack_Fun(void);
 void View_Fun(void);
-void Up_Fun(void);
-void Down_Fun(void);
+static void Up_Fun(void);
+static void Down_Fun(void);
 void Ready_Fun(void);
 void Empty_Fun(void);
+static void Backtrack1_Fun(void);
 
 extern BUTTON button[BUTTON_NUM];      //°´¼üÊý×é
 

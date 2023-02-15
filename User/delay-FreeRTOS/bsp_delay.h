@@ -38,6 +38,9 @@
 #include "FreeRTOS.h"
 #include "task.h"
 	 
+#define   F103SYSCLK    72
+	 
+	 
 void Delay_Init(u8 SYSCLK);
 void delay_ms(u16 nms);
 void delay_us(u32 nus);

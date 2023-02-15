@@ -2,7 +2,7 @@
 	*	@file ：  main.c
 	* @author：  罗成
 	* @data： 2023.01.15
-	* @version：  v1.0
+	* @version：  v6.0
 *******************************************/
 
 /*
@@ -191,6 +191,7 @@ int main(void)
 void BSP_Init(void)
 {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	Delay_Init(F103SYSCLK);
 	uart1_init(115200);
 	uart2_init(115200);
 	BEEP_GPIO_Config();
@@ -521,9 +522,9 @@ static void Face_SwitchTask(void* parameter)
 	{
 		if(0 == InterfaceFlag)
 		{
-			MainMenu();//主界面
 			Exti_Close();
 			USART_Cmd(USART2, DISABLE);
+			MainMenu();//主界面
 		}
 		else if(1 == InterfaceFlag)
 		{
