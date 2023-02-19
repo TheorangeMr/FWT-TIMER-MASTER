@@ -18,6 +18,7 @@ extern uint16_t Data1_Count;
 extern uint16_t Data2_Count; 
 extern uint16_t DataBuffer1[1024];
 extern uint16_t DataBuffer2[1024];
+
 BUTTON button[BUTTON_NUM];
 
 
@@ -173,8 +174,8 @@ void Button_Dealing(u8 KeyValue)
 	{
 		switch(KeyValue)
 		{
-			case 2: button[Backtrack].ButtonCommand(); break;
-			case 3: button[Determine].ButtonCommand(); break;
+			case 2: button[Determine].ButtonCommand(); break;
+			case 3: button[Backtrack].ButtonCommand(); break;
 			default: break;
 		}
 	}
@@ -182,8 +183,8 @@ void Button_Dealing(u8 KeyValue)
 	{
 		switch(KeyValue)
 		{
-			case 2: button[Backtrack].ButtonCommand(); break;
-			case 3: button[Determine].ButtonCommand(); break;
+			case 2: button[Determine].ButtonCommand(); break;
+			case 3: button[Backtrack].ButtonCommand(); break;
 			default: break;
 		}
 	}
@@ -265,13 +266,30 @@ static void Determine_Fun(void)
 	}
 	else if (6 == InterfaceFlag)                                                       
 	{
+		if(Data1_Count > 0)
+		{
+			while(Data1_Count--){
+				DataBuffer1[Data1_Count]  = 0;
+			}
+		}
+		InterfaceFlag = 4;
 		Data1_Count = 0;
+		xSemaphoreGive(BinarySem3_Handle);		
 	}
 	else if (7 == InterfaceFlag)
 	{
+		if(Data2_Count > 0)
+		{
+			while(Data2_Count--){
+				DataBuffer2[Data2_Count] = 0;
+			}
+		}
+		InterfaceFlag = 5;
+		xSemaphoreGive(BinarySem3_Handle);
 		Data2_Count = 0;
 	}
 }
+
 
 /*
 	*APIname£ºBacktrack_Fun()
@@ -287,6 +305,7 @@ static void Backtrack_Fun(void)
 	if(InterfaceFlag <= 2)
 	{
 		InterfaceFlag = 0;
+		Exti_Close();
 		xSemaphoreGive(BinarySem3_Handle);
 	}
 	else if(InterfaceFlag == 3)                                                      

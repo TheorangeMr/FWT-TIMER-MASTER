@@ -29,6 +29,9 @@
 #include "GT30L32S4W.h"
 #include "bsp_beep.h"
 
+//调试变量
+extern vu8 ek;
+
 /*
 *************************************************************************
 *                            内核对象句柄 
@@ -114,8 +117,12 @@ uint16_t DataBuffer2[1024] = {0};           //单圈测试数据缓存区
 uint16_t Data1_Count = 0;                  //加速测试数据计数器
 uint16_t Data2_Count = 0;                  //单圈测试数据计数器
 
-extern vu16 Time3value;
+extern vu32 Time3value;
 extern vu8 Timer1flag;
+extern vu8 EXTIX_Flag;
+
+
+
 /*
 *************************************************************************
 *                             任务优先级
@@ -159,6 +166,7 @@ void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
             第二步：创建APP应用任务
             第三步：启动FreeRTOS，开始多任务调度
   ****************************************************************/
+
 int main(void)
 {	
 	BSP_Init();
@@ -182,11 +190,13 @@ int main(void)
 
 
 /**********************************************************************
-  * @ 函数名  ： BSP_Task
-  * @ 功能说明： BSP_Task任务主体
-  * @ 参数    ：   
-  * @ 返回值  ： 无
+  * @ Taskname ： BSP_Task
+  * @ brief：     驱动初始化
+  * @ param    ： 无 
+  * @ retval   ： 无
   ********************************************************************/
+
+
 
 void BSP_Init(void)
 {
@@ -197,10 +207,14 @@ void BSP_Init(void)
 	BEEP_GPIO_Config();
 	Key_Init();
 	Button_Init();
-	Exti_Init();
-	TIMER3_Init(999, 72-1);                                                       //(71+1)分频，计数（9999+1）次       1ms
-  TIMER2_Init(9999, 7199);                                                      //(7199+1)分频，计数（4999+1）次     1s
-	TIMER1_Init(9999, 7199);                                                      //(7199+1)分频，计数（4999+1）次     1s
+	
+//	Exti_Init();
+	TIMER1_Init(9999, 7199);                                                      //使用定时器1的捕获功能
+	
+	TIMER4_Init(9999, 7199);																											//(7199+1)分频，计数（4999+1）次     1s
+	TIMER3_Init(9999, 72-1);                                                       //(71+1)分频，计数（9999+1）次       10ms
+//  TIMER2_Init(9999, 7199);                                                      //(7199+1)分频，计数（4999+1）次     1s
+
 	SPI_ILI9486_Init();
 	ILI9486_tftlcd_init();
 	delay_xms(500);
@@ -344,17 +358,20 @@ static void KeyScan_Task(void* parameter)
 static void EXTIX_DealTask(void* parameter)
 {
 	uint8_t cnt,i = 0;
-	uint32_t Cur_Data = 0;
+	static uint32_t Exti_Data[3] = {0};
+	static uint8_t n = 0;
 	char str[20] = { 0 };
+	//	static u8 k = 0;
 	while(1)
 	{
 		xSemaphoreTake(BinarySem1_Handle,portMAX_DELAY);
+//		k++;
+		EXTIX_Flag = 0;
 		BEEP(1);
-		while(i < 10)                                                                //软件滤波，需要耗费20ms
+		while(i < 10)                                                                //软件滤波，需要耗费10ms
 		{
-			
-			if(EXTI_READ() == 0) cnt++;                                              
-			vTaskDelay(2);
+			if(EXTI_READ() == 0) cnt++;
+			vTaskDelay(1);
 			i++;
 		}
 		BEEP(0);
@@ -363,32 +380,45 @@ static void EXTIX_DealTask(void* parameter)
 			//单圈计时模式
 			if(1 == InterfaceFlag)
 			{
-				if(0 == Lap_stflag){
+				if(0 == Lap_stflag)
+				{
+					n = 0;
 					Timer3_Open();
 					Lap_stflag = 1;
+					Time3value = 0;
 					sprintf(str, "%s", "计时中");
 					ILI9486_clear_screen(130, 137, 150, 30);
 					ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
 					ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
 				}
-				else{
-					Cur_Data = Time3value;
+				else
+				{
+					if(1 == n){Exti_Data[1] = Exti_Data[0];}
+					Exti_Data[0] = Time3value;//ek
 					TIM_SetCounter(TIM3,0);
 					Time3value = 0;
 					sprintf(str, "%s", "计时结束");
-					ILI9486_clear_screen(130, 137, 150, 30);
+					ILI9486_clear_screen(130, 137, 150, 30);//清除当前测试数据
+					ILI9486_clear_screen(200, 200, 90, 40); 
 					ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
-					ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
-					Show_Data(Cur_Data , 200);
+					ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);           
+					Show_Data(Exti_Data[0] , 200);
 					if(Data1_Count <= 1000)
 					{
-						TestData_Save(Cur_Data);
+						TestData_Save(Exti_Data[0]);
 					}
-					vTaskDelay(2000);                                //两秒延时处理是为了一次单圈计时结束后人机交互时显示‘结束’和后显示‘计时’做缓冲  
-					sprintf(str, "%s", "计时中");
-					ILI9486_clear_screen(130, 137, 150, 30);
-					ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
-					ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
+					vTaskDelay(1000);                                //两秒延时处理是为了一次单圈计时结束后人机交互时显示‘结束’和后显示‘计时’做缓冲  
+					if(1 == InterfaceFlag)
+					{
+						sprintf(str, "%s", "计时中");
+						ILI9486_clear_screen(130, 137, 150, 30);
+						ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
+						ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
+						if(n == 1){
+							ILI9486_clear_screen(200, 240, 90, 40);
+							Show_Data(Exti_Data[1] , 240);}
+						if(0 == n){n++;}
+					}
 				}
 			}
 			//其他模式
@@ -408,9 +438,8 @@ static void EXTIX_DealTask(void* parameter)
 			ILI9486_clear_screen(130, 137, 150, 30);
 			ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
 			ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
-			vTaskDelay(2000);                                                    //需要改
+			vTaskDelay(1000);                                                    //需要改
 		}
-		vTaskDelay(2);
 	}
 }
 
@@ -435,7 +464,7 @@ static void USART2_DealTask(void* parameter)
 			Connection_count--;
 			if((rdata&0x0f) == (PASSWORD1&0x0f)) 
 			{
-				Cur_Data = Time3value+(rdata&0xf0)*50;          
+				Cur_Data = Time3value+(rdata&0xf0)*5;          
 				Show_Data(Cur_Data , 200+40*i);									//数据显示
 				if(Data2_Count <= 1000)
 				{
@@ -522,12 +551,17 @@ static void Face_SwitchTask(void* parameter)
 	{
 		if(0 == InterfaceFlag)
 		{
-			Exti_Close();
+//			if(EXTIX_Flag == 1)
+//			{
+//				EXTIX_Flag = 0;
+////				xSemaphoreTake(BinarySem1_Handle,portMAX_DELAY);
+//			}
 			USART_Cmd(USART2, DISABLE);
 			MainMenu();//主界面
 		}
 		else if(1 == InterfaceFlag)
 		{
+			printf("单圈计时界面\n\r");
 			Lap_Test_Menu();//单圈计时界面
 			Connection_Count_Show();
 		}

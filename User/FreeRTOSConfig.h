@@ -109,7 +109,7 @@
 #define configUSE_RECURSIVE_MUTEXES			0   
 
 //为1时使用计数信号量
-#define configUSE_COUNTING_SEMAPHORES		1
+#define configUSE_COUNTING_SEMAPHORES		0
 
 /* 设置可以注册的信号量和消息队列个数 */
 #define configQUEUE_REGISTRY_SIZE				10                                 

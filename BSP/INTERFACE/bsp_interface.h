@@ -30,7 +30,7 @@ void Show_Data(u16 zdata, u16 pos_y);
 void Empty_Records(void);
 
 
-extern u8 InterfaceFlag;                  //界面标志
+extern vu8 InterfaceFlag;                  //界面标志
 extern u8 SelectFlag;                     //选择标志
 #endif
 

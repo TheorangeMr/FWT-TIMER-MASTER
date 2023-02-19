@@ -16,10 +16,9 @@ u16 Page_Start = 0;                    //页首
 u16 Data1_Seek = 0;                    //加速数据定位值
 u16 Data2_Seek = 0;                    //单圈数据定位值
 u8 SelectFlag = 1;                     //选择标志
-u8 InterfaceFlag = 0;                 //界面标志
+vu8 InterfaceFlag = 0;                 //界面标志
 
 extern uint8_t Connection_count;
-
 
 /*
 	*APIname：MainMenu()
@@ -29,10 +28,9 @@ extern uint8_t Connection_count;
 	*author： 罗成
 	*data：   2023.1.15
 */
-void MainMenu(void)                     
+void MainMenu(void)
 {
-	ILI9486_clear_screen(0, 80, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH-40);//清屏
-
+	ILI9486_clear_screen(0, 10, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH-10);  //清屏
 	vTaskDelay(100);
 	
 	ILI9486_showstring_Ch(88, 80, (u8*)"计时器", GB2312_32X32);
@@ -48,7 +46,7 @@ void MainMenu(void)
 	{
 		ILI9486_showstring_Ch(70, 180, (u8*)"◆", GB2312_24X24);
 	}
-	button[Up].ButtonDraw(&button[Up]);                                        
+	button[Up].ButtonDraw(&button[Up]);
 	button[Down].ButtonDraw(&button[Down]);
 	button[Determine].ButtonDraw(&button[Determine]);
 }

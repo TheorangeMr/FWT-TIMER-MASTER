@@ -6,6 +6,7 @@
 *******************************************/
 
 #include "bsp_exti.h"
+#include "bsp_timer.h"
 
 void Exti_Init(void)
 {
@@ -29,12 +30,14 @@ void Exti_Init(void)
 	EXTI_InitStructure.EXTI_LineCmd=ENABLE;                       //中断线使能
 	EXTI_InitStructure.EXTI_Line=EXTI_Line8;
 	EXTI_Init(&EXTI_InitStructure);
+	Exti_Close();	
 	
 	NVIC_InitStructure.NVIC_IRQChannel=EXTIX_IRQn;             //外部中断通道
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;      //设置抢断优先级
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority=2;             //设置响应优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;                //使能中断通道
 	NVIC_Init(&NVIC_InitStructure);
+
 }
 
 
@@ -42,13 +45,15 @@ void Exti_Init(void)
 //开启中断函数
 void Exti_Open(void)
 {
-  EXTI_ClearITPendingBit(EXTI_Line8);
-	EXTI->IMR |= (EXTI_Line8);
+	TIM_ITConfig(ADVANCE_TIMEX, TIM_IT_CC1, ENABLE);		                    //禁止捕获/比较1中断
+//  EXTI_ClearITPendingBit(EXTI_Line8);
+//	EXTI->IMR |= (EXTI_Line8);
 }
 
 //关闭外部中断函数
 void Exti_Close(void)
 {
-  EXTI_ClearITPendingBit(EXTI_Line8);
-	EXTI->IMR &= ~(EXTI_Line8);
+	TIM_ITConfig(ADVANCE_TIMEX, TIM_IT_CC1, ENABLE);		                    //禁止捕获/比较1中断
+//  EXTI_ClearITPendingBit(EXTI_Line8);
+//	EXTI->IMR &= ~(EXTI_Line8);
 }

@@ -27,13 +27,17 @@
 #include "task.h"
 #include "semphr.h"
 #include "bsp_exti.h"
+#include "bsp_timer.h"
 
 extern SemaphoreHandle_t  BinarySem1_Handle;
 extern SemaphoreHandle_t  BinarySem2_Handle;
 
-vu16 Time3value = 0;
+vu32 Time3value = 0;
 vu16 Time1value = 0;
 vu8 Timer1flag = 0;
+vu8 EXTIX_Flag = 0;
+
+vu8 ek = 0;
 
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
@@ -163,15 +167,24 @@ void SysTick_Handler(void)
 /*      外部中断服务函数    */
 void EXTIX_IRQHandler(void)                                                     /* 1 */
 {
+	static uint8_t exti_i = 0;
 	BaseType_t pxHigherPriorityTaskWoken,xResult;
 	if(EXTI_GetITStatus(EXTI_LineX) != RESET)
 	{
+//		ek++;
 		EXTI_ClearITPendingBit(EXTI_LineX);
+		exti_i++;
 		pxHigherPriorityTaskWoken = pdFALSE;
-		xResult = xSemaphoreGiveFromISR(BinarySem1_Handle ,&pxHigherPriorityTaskWoken);
-		if(xResult != pdFAIL)
+		if(exti_i == 10)
 		{
-			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+			exti_i = 0;
+			xResult = xSemaphoreGiveFromISR(BinarySem1_Handle ,&pxHigherPriorityTaskWoken);
+			if(xResult != pdFAIL)
+			{
+	
+				portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+			}
+			EXTIX_Flag = 1;
 		}
 	}
 }
@@ -201,20 +214,44 @@ void TIM3_IRQHandler(void)
 	if(TIM_GetITStatus(TIM3,TIM_FLAG_Update)!=RESET){
 		TIM_ClearITPendingBit(TIM3,TIM_FLAG_Update);
 		Time3value++;
-		if(Time3value >= 50000)                                                //防止变量溢出程序跑飞
+		if(Time3value >= 50000)                                                //防止变量溢出程序跑飞.（50000/100/60）八分钟
 		{
 			Time3value = 0;
 		}
 	}
 }
 
-//定时器1中断服务函数
-void TIM1_UP_IRQHandler(void)
+
+void ADVANCE_TIM1_CCx_IRQHandler(void)
 {
 	BaseType_t pxHigherPriorityTaskWoken,xResult;
-	if(TIM_GetITStatus(TIM1,TIM_FLAG_Update)!=RESET)
+	static uint8_t exti_i = 0;
+	if (TIM_GetITStatus(ADVANCE_TIMEX, ADVANCE_TIM1_IT_CCx) != 0) //通道1捕获
 	{
-		TIM_ClearITPendingBit(TIM1,TIM_FLAG_Update);
+		TIM_ClearITPendingBit(ADVANCE_TIMEX, ADVANCE_TIM1_IT_CCx);
+		exti_i++;
+		pxHigherPriorityTaskWoken = pdFALSE;
+		if(exti_i == 2)
+		{
+			exti_i = 0;
+			xResult = xSemaphoreGiveFromISR(BinarySem1_Handle ,&pxHigherPriorityTaskWoken);
+			if(xResult != pdFAIL)
+			{
+	
+				portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+			}
+			EXTIX_Flag = 1;
+		}
+	}
+}
+
+
+void TIM4_IRQHandler(void)
+{
+	BaseType_t pxHigherPriorityTaskWoken,xResult;
+	if(TIM_GetITStatus(TIM4,TIM_FLAG_Update)!=RESET)
+	{
+		TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);
 		Time1value++;
 		if(Time1value >= 10)                                                //防止变量溢出程序跑飞
 		{
@@ -227,10 +264,8 @@ void TIM1_UP_IRQHandler(void)
 			Timer1flag = 1;
 			Time1value = 0;
 		}
-	}
+	}	
 }
-
-
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
