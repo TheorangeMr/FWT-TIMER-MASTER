@@ -8,6 +8,16 @@
 
 #define MAXSIZE 20
 
+
+#define CHINSESDATA1       "测试数据一："
+#define CHINSESDATA2       "测试数据二："
+#define CHINSESDATA3       "测试数据三："
+#define CHINSESDATA4       "测试数据四："
+#define CHINSESDATA5       "测试数据五："
+#define CHINSESDATA6       "测试数据六："
+
+
+
 #if 0
 typedef struct
 {

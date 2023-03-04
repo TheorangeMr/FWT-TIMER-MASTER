@@ -28,6 +28,7 @@
 #include "semphr.h"
 #include "bsp_exti.h"
 #include "bsp_timer.h"
+#include "bsp_usart.h"
 
 extern SemaphoreHandle_t  BinarySem1_Handle;
 extern SemaphoreHandle_t  BinarySem2_Handle;
@@ -70,6 +71,7 @@ void NMI_Handler(void)
   */
 void HardFault_Handler(void)
 {
+	printf("HardFault error\r\n");
   /* Go to infinite loop when Hard Fault exception occurs */
   while (1)
   {
@@ -173,30 +175,31 @@ void EXTIX_IRQHandler(void)                                                     
 	{
 //		ek++;
 		EXTI_ClearITPendingBit(EXTI_LineX);
+		Exti_Close();TIM_Cmd(TIM2,ENABLE);
 		exti_i++;
 		pxHigherPriorityTaskWoken = pdFALSE;
-		if(exti_i == 10)
+		
+		xResult = xSemaphoreGiveFromISR(BinarySem1_Handle ,&pxHigherPriorityTaskWoken);
+		if(xResult != pdFAIL)
 		{
-			exti_i = 0;
-			xResult = xSemaphoreGiveFromISR(BinarySem1_Handle ,&pxHigherPriorityTaskWoken);
-			if(xResult != pdFAIL)
-			{
-	
-				portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
-			}
-			EXTIX_Flag = 1;
+			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 		}
+		EXTIX_Flag = 1;
 	}
 }
 
-/*     串口1中断服务程序     */
+/*     串口2中断服务程序     */
 
-void USART1_IRQHandler(void)            	
+void USART2_IRQHandler(void)            	
 {
 	BaseType_t pxHigherPriorityTaskWoken,xResult;
+
 	if(USART_GetITStatus(USART2,USART_IT_RXNE) != RESET)
 	{
+//		USART_ClearFlag(USART2, USART_FLAG_RXNE);	
 		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+//		printf("interrupt\r\n");
+		USART_Cmd(USART2, DISABLE);
 		pxHigherPriorityTaskWoken = pdFALSE;
 		xResult = xSemaphoreGiveFromISR(BinarySem2_Handle ,&pxHigherPriorityTaskWoken);
 		if(xResult != pdFAIL)
@@ -246,12 +249,12 @@ void ADVANCE_TIM1_CCx_IRQHandler(void)
 }
 
 
-void TIM4_IRQHandler(void)
+void ADVANCE_TIM1_IRQHandler(void)
 {
 	BaseType_t pxHigherPriorityTaskWoken,xResult;
-	if(TIM_GetITStatus(TIM4,TIM_FLAG_Update)!=RESET)
+	if(TIM_GetITStatus(TIM1,TIM_FLAG_Update)!=RESET)
 	{
-		TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);
+		TIM_ClearITPendingBit(TIM1,TIM_FLAG_Update);
 		Time1value++;
 		if(Time1value >= 10)                                                //防止变量溢出程序跑飞
 		{
@@ -267,6 +270,30 @@ void TIM4_IRQHandler(void)
 	}	
 }
 
+void TIM4_IRQHandler(void)
+{
+	if(TIM_GetITStatus(TIM4,TIM_FLAG_Update)!=RESET)
+	{
+		TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);
+	}
+}
+
+
+
+void TIM2_IRQHandler(void)
+{
+	static uint8_t Time2value = 0;
+	if(TIM_GetITStatus(TIM2,TIM_FLAG_Update)!=RESET)
+	{
+		TIM_ClearITPendingBit(TIM2,TIM_FLAG_Update);
+		Time2value++;
+		if(Time2value >= 5)      
+		{
+			Exti_Open();TIM_Cmd(TIM2,DISABLE);
+			Time2value = 0;
+		}
+	}	
+}
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */

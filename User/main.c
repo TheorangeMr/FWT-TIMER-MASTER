@@ -16,6 +16,10 @@
 #include "task.h"
 #include "event_groups.h"
 #include "semphr.h"
+
+/*c库头文件*/
+#include "stdio.h"
+
 /* 外设驱动头文件 */
 #include "bsp_usart.h"
 #include "bsp_timer.h"
@@ -28,9 +32,29 @@
 #include "bsp_delay.h"
 #include "GT30L32S4W.h"
 #include "bsp_beep.h"
+#include "as32-100-c.h"
 
-//调试变量
-extern vu8 ek;
+////调试变量
+//extern vu8 ek;
+
+
+
+/*
+*************************************************************************
+*                         定义    
+*************************************************************************
+*/
+
+
+//最大连接从机数目
+#define   timer_slave_max          6
+
+//任务优先级
+#define   KEY_Priority              8
+#define   EXIT_Priority             9
+#define   USART_Priority            10
+#define   Interface_Priority        11
+
 
 /*
 *************************************************************************
@@ -100,7 +124,7 @@ static void EXTIX_DealTask(void* parameter);
 static void USART2_DealTask(void* parameter);
 static void TestData_Save(uint16_t Timevalue);
 static void Face_SwitchTask(void* parameter);
-
+inline static void Usart_Handle(uint8_t rd);
 
 /*
 *************************************************************************
@@ -111,28 +135,19 @@ static void Face_SwitchTask(void* parameter);
 uint8_t Lap_stflag = 0;                     //单圈计时起始计数标志
 uint8_t Connection_count = 0;               //连接从机通讯计数
 uint8_t bxflag = 0;
-uint16_t Showhigh = 260;                    //从机检测显示位置
+uint16_t Showhigh = 150;                    //从机检测显示位置
 uint16_t DataBuffer1[1024] = {0};           //加速测试数据缓存区
 uint16_t DataBuffer2[1024] = {0};           //单圈测试数据缓存区
 uint16_t Data1_Count = 0;                  //加速测试数据计数器
 uint16_t Data2_Count = 0;                  //单圈测试数据计数器
+uint16_t timer_slave[timer_slave_max] = {0};
+uint16_t timer_slaver_num[timer_slave_max] = {0};
+uint8_t  slaver_flag = 0;
 
 extern vu32 Time3value;
 extern vu8 Timer1flag;
 extern vu8 EXTIX_Flag;
 
-
-
-/*
-*************************************************************************
-*                             任务优先级
-*************************************************************************
-*/
-
-#define   KEY_Priority              8
-#define   EXIT_Priority             9
-#define   USART_Priority            10
-#define   Interface_Priority        11
 
 /****************************************************************************/
 
@@ -202,18 +217,15 @@ void BSP_Init(void)
 {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	Delay_Init(F103SYSCLK);
-	uart1_init(115200);
-	uart2_init(115200);
-	BEEP_GPIO_Config();
 	Key_Init();
 	Button_Init();
+  AS32_Init();BEEP_Init();
+	Exti_Init();
+	TIMER1_Init(9999, 7199);                                                 //(7199+1)分频，计数（4999+1）次     1s
 	
-//	Exti_Init();
-	TIMER1_Init(9999, 7199);                                                      //使用定时器1的捕获功能
-	
-	TIMER4_Init(9999, 7199);																											//(7199+1)分频，计数（4999+1）次     1s
+//	TIMER4_Init(9999, 7199);																											//(7199+1)分频，计数（4999+1）次     1s
 	TIMER3_Init(9999, 72-1);                                                       //(71+1)分频，计数（9999+1）次       10ms
-//  TIMER2_Init(9999, 7199);                                                      //(7199+1)分频，计数（4999+1）次     1s
+  TIMER2_Init(9999, 7199);                                                      //(7199+1)分频，计数（4999+1）次     1s
 
 	SPI_ILI9486_Init();
 	ILI9486_tftlcd_init();
@@ -223,7 +235,10 @@ void BSP_Init(void)
 	u32 addr = ASCII_Addr_Tans('A', ASCII_8X16);                                  //对字库芯片进行一次读操作，去除第一次的数据丢失
 	u8 zdata[16];
 	GT30L32S4W_Read(addr , zdata, ASCII_8X16);
+	uart1_init(115200);	
+	uart2_init(115200);
 	ILI9486_showstring_Ch(50,200,(u8*)"飞翼车队电气组",GB2312_32X32);
+	
 	delay_xms(500);
 //	Timer2_Open();                                                                //打开定时器2定时喂狗
 }
@@ -243,13 +258,13 @@ static void AppTaskCreate(void)
 	BinarySem2_Handle = xSemaphoreCreateBinary();
 	BinarySem3_Handle = xSemaphoreCreateBinary();
 	if(NULL != BinarySem1_Handle){
-		printf("BinarySem1_Handle 二值信号量创建成功！");
+		printf("BinarySem1_Handle 二值信号量创建成功！\r\n");
 	}
 	if(NULL != BinarySem2_Handle){
-		printf("BinarySem2_Handle 二值信号量创建成功！");
+		printf("BinarySem2_Handle 二值信号量创建成功！\r\n");
 	}
 	if(NULL != BinarySem3_Handle){
-		printf("BinarySem3_Handle 二值信号量创建成功！");
+		printf("BinarySem3_Handle 二值信号量创建成功！\r\n");
 	}	
   /* 创建KeyScan_Task任务 */
 	KEY_Task_Handle = xTaskCreateStatic((TaskFunction_t	)KeyScan_Task,		            //任务函数
@@ -367,14 +382,14 @@ static void EXTIX_DealTask(void* parameter)
 		xSemaphoreTake(BinarySem1_Handle,portMAX_DELAY);
 //		k++;
 		EXTIX_Flag = 0;
-		BEEP(1);
+//		BEEP(1);
 		while(i < 10)                                                                //软件滤波，需要耗费10ms
 		{
 			if(EXTI_READ() == 0) cnt++;
 			vTaskDelay(1);
 			i++;
 		}
-		BEEP(0);
+//		BEEP(0);
 		if(cnt > 5)                                                                 //如果有效采样次数大于设定值，则是中断信号
 		{
 			//单圈计时模式
@@ -398,8 +413,8 @@ static void EXTIX_DealTask(void* parameter)
 					TIM_SetCounter(TIM3,0);
 					Time3value = 0;
 					sprintf(str, "%s", "计时结束");
-					ILI9486_clear_screen(130, 137, 150, 30);//清除当前测试数据
-					ILI9486_clear_screen(200, 200, 90, 40); 
+					ILI9486_clear_screen(130, 137, 150, 30);
+					ILI9486_clear_screen(200, 200, 90, 40);//清除当前测试数据
 					ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
 					ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);           
 					Show_Data(Exti_Data[0] , 200);
@@ -421,15 +436,16 @@ static void EXTIX_DealTask(void* parameter)
 					}
 				}
 			}
-			//其他模式
+			//多从机模式
 			else if(3 == InterfaceFlag)
 			{
 				Exti_Close();
+				Timer3_Open();
 				USART_Cmd(USART2, ENABLE);		//开串口
 				sprintf(str, "%s", "计时中");
 				ILI9486_clear_screen(130, 137, 150, 30);
 				ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
-				ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);            
+				ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);      
 			}
 		}
 		else
@@ -451,58 +467,27 @@ static void EXTIX_DealTask(void* parameter)
   ********************************************************************/
 static void USART2_DealTask(void* parameter)
 {
-	uint8_t rdata,slaver_flag= 0;
-	static uint8_t i = 0;
-	uint32_t Cur_Data = 0;
-	char str[30] = {0};
+	uint8_t rdata = 0;
 	while(1)
 	{
 		xSemaphoreTake(BinarySem2_Handle,portMAX_DELAY);
+//		printf("Sem");
 		rdata = USART_ReceiveData(USART2);
 		if(3 == InterfaceFlag)                              //多从机测试
 		{
-			Connection_count--;
-			if((rdata&0x0f) == (PASSWORD1&0x0f)) 
-			{
-				Cur_Data = Time3value+(rdata&0xf0)*5;          
-				Show_Data(Cur_Data , 200+40*i);									//数据显示
-				if(Data2_Count <= 1000)
-				{
-					TestData_Save(Cur_Data);
-				}
-				USART_SendData(USART2,PASSWORD1);               /*给从机发送停止信号*/
-				i++;
-			}
-			else
-			{
-				Cur_Data = 1110;                                    //1.11s表示数据错误
-				Show_Data(Cur_Data , 200+40*i);                 //数据显示
-				USART_SendData(USART2,PASSWORD1);               /*给从机发送停止信号*/
-				i++;
-			}
-			if(Connection_count == i+1)
-			{
-				Exti_Open();
-				Timer3_Off();
-				sprintf(str, "%s", "计时结束");
-				ILI9486_clear_screen(130, 137, 150, 30);
-				ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
-				ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
-				vTaskDelay(2000);
-				sprintf(str, "%s", "准备计时");
-				ILI9486_clear_screen(130, 137, 150, 30);
-				ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
-				ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
-				i = 0;
-			}
+			Usart_Handle(rdata);
 		}
-		else if(2 == InterfaceFlag)
+		else if((2 == InterfaceFlag) && (Connection_count <= timer_slave_max))
 		{
 			if(1 == Timer1flag)
 			{
+				uint8_t s1 = 0;
+				printf("从机连接超时\r\n");
+				slaver_flag = rdata&0x0F;
 				Timer1_Off();
-				sprintf(str, "%s%d", "从机连接失败: ",slaver_flag);
-				ILI9486_showstring_Ch(20, Showhigh, (u8*)str, GB2312_24X24);
+				ILI9486_showstring_Ch(20, Showhigh, (u8*)"从机连接失败", GB2312_24X24);
+				s1 = slaver_flag + 0x30;
+				ILI9486_showstring_En(180, Showhigh, (u8*)&s1, ASCII_12X24);
 				Showhigh += 40;
 				Timer1flag = 0;
 				bxflag = 0;
@@ -511,32 +496,61 @@ static void USART2_DealTask(void* parameter)
 			{
 				if(0 == bxflag)
 				{
-					if(rdata&0xF0 == 0xa0)
+					if((rdata&0xF0) == 0xa0)
 					{
+//						printf("0x%x\r\n",rdata);
 						slaver_flag = rdata&0x0F;
+//						printf("%d\r\n",slaver_flag);
 						for(uint8_t i = 0; i<10 ;i++)
 						{
-							USART_SendData(USART2 , (0xb0+slaver_flag));
+							USART_SendData(USART2 ,(0xb0+slaver_flag));
 							vTaskDelay(50);
-						}  
+						}
 						bxflag = 1;
 						Timer1_Open();//打开定时器计时
-					}				
+					}
 				}
 				else if(1 == bxflag)
 				{
+//					printf("0x%x\r\n",rdata);
+//					printf("0x%x\r\n",0xc0+slaver_flag);
 					if(rdata == (0xc0+slaver_flag))
 					{
+						uint8_t j,z=0;
+//						printf("0x%x\r\n",rdata);
+						uint8_t s2 = 0;
 						Timer1_Off();
-						Connection_count++;
-						sprintf(str, "%s%d", "已连接从机: ",slaver_flag);
-						ILI9486_showstring_Ch(20, Showhigh, (u8*)str, GB2312_24X24);
-						Showhigh += 40;
+						if(Connection_count > 0)
+						{
+							for(j = 0; j<Connection_count; j++)
+							{
+								if(slaver_flag == timer_slave[j])
+								{
+									z = 1;
+									break;
+								}
+							}
+						}
+						if(0 == z)
+						{
+							uint8_t n = Connection_count++;
+							timer_slave[n--] = slaver_flag;
+//							printf("%d\r\n",Connection_count);
+							ILI9486_showstring_Ch(20, Showhigh, (u8*)"已连接从机：", GB2312_24X24);
+							s2 = slaver_flag + 0x30;
+							ILI9486_showstring_En(160, Showhigh, (u8*)&s2, ASCII_12X24); 
+							Showhigh += 40;
+						}
 						bxflag = 0;
-					}		
+					}
 				}
 			}
 		}
+		else if(Connection_count > timer_slave_max)
+		{
+				ILI9486_showstring_Ch(20, Showhigh, (u8*)"从机连接数量已满", GB2312_24X24);
+		}
+		USART_Cmd(USART2, ENABLE);
 	}
 }
 /**********************************************************************
@@ -558,6 +572,7 @@ static void Face_SwitchTask(void* parameter)
 //			}
 			USART_Cmd(USART2, DISABLE);
 			MainMenu();//主界面
+			Showhigh = 150;
 		}
 		else if(1 == InterfaceFlag)
 		{
@@ -567,8 +582,10 @@ static void Face_SwitchTask(void* parameter)
 		}
 		else if(2 == InterfaceFlag)
 		{
-			Slaver_Check_Interface();//从机数量检测界面
 			USART_Cmd(USART2, ENABLE);//打开串口
+//			USART_SendData(USART2, 0xb1);
+//		  printf("USART2_ENABLE\r\n");
+			Slaver_Check_Interface();//从机数量检测界面
 		}
 		else if(3 == InterfaceFlag)
 		{
@@ -605,5 +622,68 @@ static void TestData_Save(uint16_t Timevalue)
 	else if(3 == InterfaceFlag)
 	{
 		DataBuffer2[Data2_Count++] = Timevalue;
+	}
+}
+
+/**********************************************************************
+  * @ APIname ： Usart_Handle
+  * @ brief：     处理通讯数据
+  * @ param    ： rd
+  * @ retval   ： 无
+  ********************************************************************/
+
+
+inline static void Usart_Handle(uint8_t rd)
+{
+	uint32_t Cur_Data = 0;
+	uint8_t j = 0,m = 0;
+	static uint8_t i = 0;
+	if((rd&0x0f) >0&&(rd&0x0f)<=timer_slave_max)
+	{
+		for(j = 0; j<i; j++)
+		{
+			if((rd&0x0f) == timer_slaver_num[i])
+			{
+				m = 1;
+				break;
+			}
+		}
+		if(m == 0)
+		{
+			Cur_Data = Time3value+(rd&0xf0)*5;
+			ILI9486_clear_screen(200, 190+40*i, 90, 30);
+			Show_Data(Cur_Data , 190+40*i);									//数据显示
+			if(Data2_Count <= 1000)
+			{
+				TestData_Save(Cur_Data);
+			}
+			timer_slaver_num[i] = (rd&0x0f);
+			USART_SendData(USART2,(rd&0x0f)+0xf0);               /*给从机发送停止信号*/
+		}
+		i++;
+	}
+	else
+	{
+		Cur_Data = 1110;                                    //1.11s表示数据错误
+		Show_Data(Cur_Data , 190+40*i);                 //数据显示
+		i++;
+	}
+	if(i >= Connection_count)
+	{
+		Exti_Open();
+		Timer3_Off();
+		Time3value = 0;
+		ILI9486_clear_screen(130, 137, 150, 30);
+		ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
+		ILI9486_showstring_Ch(141, 140, (u8*)"计时结束", GB2312_24X24);
+		vTaskDelay(2000);
+		ILI9486_clear_screen(130, 137, 150, 30);
+		ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
+		ILI9486_showstring_Ch(141, 140, (u8*)"准备计时", GB2312_24X24);
+		for(j = 0;j < i;j++)
+		{
+			timer_slaver_num[i] = 0;
+		}
+		i = 0;                  
 	}
 }

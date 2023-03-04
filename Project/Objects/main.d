@@ -42,8 +42,8 @@
 .\objects\main.o: ..\FreeRtos\include\timers.h
 .\objects\main.o: ..\FreeRtos\include\semphr.h
 .\objects\main.o: ..\FreeRtos\include\queue.h
-.\objects\main.o: ..\BSP\USART\bsp_usart.h
 .\objects\main.o: D:\software\keil 5 install\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\main.o: ..\BSP\USART\bsp_usart.h
 .\objects\main.o: ..\BSP\TIMER\bsp_timer.h
 .\objects\main.o: ..\BSP\KEY\bsp_key.h
 .\objects\main.o: ..\BSP\EXTI\bsp_exti.h
@@ -54,3 +54,4 @@
 .\objects\main.o: ..\BSP\SPI\bsp_spi.h
 .\objects\main.o: ..\User\delay-FreeRTOS\bsp_delay.h
 .\objects\main.o: ..\BSP\BEEP\bsp_beep.h
+.\objects\main.o: ..\BSP\LOAR\as32-100-c.h

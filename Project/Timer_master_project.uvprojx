@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_MD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\FreeRtos\include;..\FreeRtos\portable\ARM_CM3;..\User;..\Library\STM32F10x_StdPeriph_Driver\inc;..\Library\CMSIS;..\User\delay-FreeRTOS;..\BSP\USART;..\BSP\TIMER;..\BSP\KEY;..\BSP\EXTI;..\BSP\INTERFACE;..\BSP\GT30132S4;..\BSP\ILI9486;..\BSP\BUTTON;..\BSP\SPI;..\BSP\BEEP</IncludePath>
+              <IncludePath>..\FreeRtos\include;..\FreeRtos\portable\ARM_CM3;..\User;..\Library\STM32F10x_StdPeriph_Driver\inc;..\Library\CMSIS;..\User\delay-FreeRTOS;..\BSP\USART;..\BSP\TIMER;..\BSP\KEY;..\BSP\EXTI;..\BSP\INTERFACE;..\BSP\GT30132S4;..\BSP\ILI9486;..\BSP\BUTTON;..\BSP\SPI;..\BSP\BEEP;..\BSP\LOAR</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -607,6 +607,11 @@
               <FileName>bsp_beep.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\BEEP\bsp_beep.c</FilePath>
+            </File>
+            <File>
+              <FileName>as32-100-c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\LOAR\as32-100-c.c</FilePath>
             </File>
           </Files>
         </Group>

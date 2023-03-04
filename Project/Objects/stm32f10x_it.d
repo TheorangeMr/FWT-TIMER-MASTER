@@ -43,3 +43,5 @@
 .\objects\stm32f10x_it.o: ..\FreeRtos\include\queue.h
 .\objects\stm32f10x_it.o: ..\BSP\EXTI\bsp_exti.h
 .\objects\stm32f10x_it.o: ..\BSP\TIMER\bsp_timer.h
+.\objects\stm32f10x_it.o: ..\BSP\USART\bsp_usart.h
+.\objects\stm32f10x_it.o: D:\software\keil 5 install\ARM\ARMCC\Bin\..\include\stdio.h

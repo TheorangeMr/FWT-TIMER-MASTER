@@ -17,8 +17,8 @@ void BEEP_GPIO_Config(void)
 		GPIO_InitTypeDef GPIO_InitStructure;
 
 		/*开启控制蜂鸣器的GPIO的端口时钟*/
-		RCC_APB2PeriphClockCmd( BEEP_GPIO_CLK, ENABLE); 
-
+		RCC_APB2PeriphClockCmd( BEEP_GPIO_CLK|RCC_APB2Periph_AFIO, ENABLE); 
+	  GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);	
 		/*选择要控制蜂鸣器的GPIO*/															   
 		GPIO_InitStructure.GPIO_Pin = BEEP_GPIO_PIN;	
 
@@ -29,9 +29,16 @@ void BEEP_GPIO_Config(void)
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; 
 
 		/*调用库函数，初始化控制蜂鸣器的GPIO*/
-		GPIO_Init(BEEP_GPIO_PORT, &GPIO_InitStructure);			 
-    
-    /* 关闭蜂鸣器*/
-		GPIO_ResetBits(BEEP_GPIO_PORT, BEEP_GPIO_PIN);	 
+		GPIO_Init(BEEP_GPIO_PORT, &GPIO_InitStructure);			  
 }
+
+void BEEP_Init(void)
+{
+	BEEP_GPIO_Config();
+	/* 关闭蜂鸣器*/
+  GPIO_WriteBit(BEEP_GPIO_PORT, BEEP_GPIO_PIN, Bit_RESET); 
+//	  GPIO_WriteBit(BEEP_GPIO_PORT, BEEP_GPIO_PIN, Bit_SET); 
+}
+
+
 /*********************************************END OF FILE**********************/

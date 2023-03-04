@@ -21,9 +21,9 @@
 /***************************GT30L32S4W相关引脚*************************/
 
 //片选引脚
-#define      GT30L32S4W_CS_CLK           RCC_APB2Periph_GPIOA
-#define      GT30L32S4W_CS_PORT          GPIOA
-#define      GT30L32S4W_CS_PIN           GPIO_Pin_2
+#define      GT30L32S4W_CS_CLK           RCC_APB2Periph_GPIOB
+#define      GT30L32S4W_CS_PORT          GPIOB
+#define      GT30L32S4W_CS_PIN           GPIO_Pin_6
 #define      GT30L32S4W_CS_L             GPIO_ResetBits(GT30L32S4W_CS_PORT, GT30L32S4W_CS_PIN)
 #define      GT30L32S4W_CS_H             GPIO_SetBits(GT30L32S4W_CS_PORT, GT30L32S4W_CS_PIN)
 

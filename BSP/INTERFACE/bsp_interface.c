@@ -11,6 +11,8 @@
 #include "bsp_exti.h"
 #include "bsp_usart.h"
 #include "bsp_timer.h"
+//最大连接从机数目
+#define   timer_slave_max          6
 
 u16 Page_Start = 0;                    //页首
 u16 Data1_Seek = 0;                    //加速数据定位值
@@ -19,6 +21,8 @@ u8 SelectFlag = 1;                     //选择标志
 vu8 InterfaceFlag = 0;                 //界面标志
 
 extern uint8_t Connection_count;
+extern uint16_t timer_slave[timer_slave_max];
+
 
 /*
 	*APIname：MainMenu()
@@ -37,6 +41,7 @@ void MainMenu(void)
 	ILI9486_showstring_En(184, 80, (u8*)"6.0", ASCII_16X32);
 	ILI9486_showstring_Ch(100, 140, (u8*)"Ⅰ、单圈测试", GB2312_24X24);
 	ILI9486_showstring_Ch(100, 180, (u8*)"Ⅱ、多从机测试", GB2312_24X24);
+	ILI9486_showstring_Ch(100, 220, (u8*)"Ⅲ、热敏打印", GB2312_24X24);
 
 	if (SelectFlag == 1)
 	{
@@ -45,6 +50,10 @@ void MainMenu(void)
 	else if(SelectFlag == 2)
 	{
 		ILI9486_showstring_Ch(70, 180, (u8*)"◆", GB2312_24X24);
+	}
+		else if(SelectFlag == 3)
+	{
+		ILI9486_showstring_Ch(70, 220, (u8*)"◆", GB2312_24X24);
 	}
 	button[Up].ButtonDraw(&button[Up]);
 	button[Down].ButtonDraw(&button[Down]);
@@ -133,8 +142,13 @@ void Connection_Count_Show(void)
 	ILI9486_showstring_Ch(20, 20, (u8*)"串口通讯：", GB2312_24X24);
 	if(Connection_count != 0)
 	{
-		ILI9486_draw_rectangle(150, 10, 50, 44, BLUE);
-		ILI9486_showstring_En(160, 20, (u8*)Connection_count, ASCII_12X24);
+		uint8_t i = 0;
+		ILI9486_draw_rectangle(145, 10, 30+Connection_count*20,44, BLUE);
+		for(i = 0;i < Connection_count;i++)
+		{
+			uint8_t dat = timer_slave[i] + 0x30;
+			ILI9486_showstring_En(160+i*15, 20,(u8*)&dat, ASCII_12X24);
+		}
 	}
 	else
 	{
@@ -157,8 +171,8 @@ void Slaver_Check_Interface(void)
 {
 	Connection_count = 0;
 	ILI9486_clear_screen(0, 0, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH);
-	ILI9486_showstring_Ch(20, 220, (u8*)"串口通讯检测中", GB2312_24X24);
-	ILI9486_showstring_En(190, 220, (u8*)".......", ASCII_12X24);
+	ILI9486_showstring_Ch(20, 100, (u8*)"串口通讯检测中", GB2312_24X24);
+	ILI9486_showstring_En(190, 100, (u8*)".......", ASCII_12X24);
 	button[Determine].ButtonDraw(&button[Determine]);
 	button[Backtrack1].ButtonDraw(&button[Backtrack1]);
 }
@@ -175,8 +189,8 @@ void Slaver_Check_Interface(void)
 
 void Multi_slave_function_interface(void)
 {
-	uint8_t i = 0;
-	char str[20] = {0};
+	uint8_t i;
+	uint16_t high = 190;
 	Exti_Close();
 	Timer3_Off();
 	ILI9486_clear_screen(0, 80, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH);    //清屏	
@@ -185,12 +199,21 @@ void Multi_slave_function_interface(void)
 	ILI9486_showstring_Ch(100, 80, (u8*)"多从机测试", GB2312_32X32);
 	ILI9486_showstring_Ch(20, 140, (u8*)"状态框：", GB2312_24X24);
 	ILI9486_showstring_Ch(141, 140, (u8*)"空闲", GB2312_24X24);                         //需要测试观察现象
-	while(Connection_count--)
+	ILI9486_draw_rectangle(20, 180, 280, Connection_count*40, BLUE);
+	for(i = 0;i<Connection_count;i++)
 	{
-		ILI9486_draw_rectangle(20, 180, 280, Connection_count*50, BLUE);
-		sprintf(str,"%s：%d","本次测试数据",i+1);
-		ILI9486_showstring_Ch(30, (200+i*40), (u8*)str, GB2312_24X24);
-		i++;
+		if(i == 0)
+		{		ILI9486_showstring_Ch(25,high+i*40,(u8*)CHINSESDATA1, GB2312_24X24);}
+		else if(i == 1)
+		{		ILI9486_showstring_Ch(25,high+i*40,(u8*)CHINSESDATA2, GB2312_24X24);}
+		else if(i == 2)
+		{		ILI9486_showstring_Ch(25,high+i*40,(u8*)CHINSESDATA3, GB2312_24X24);}
+		else if(i == 3)
+		{		ILI9486_showstring_Ch(25,high+i*40,(u8*)CHINSESDATA4, GB2312_24X24);}
+		else if(i == 4)
+		{		ILI9486_showstring_Ch(25,high+i*40,(u8*)CHINSESDATA5, GB2312_24X24);}
+		else if(i == 5)
+		{		ILI9486_showstring_Ch(25,high+i*40,(u8*)CHINSESDATA6, GB2312_24X24);}
 	}
 	button[View].ButtonDraw(&button[View]);
 	button[Ready].ButtonDraw(&button[Ready]);
@@ -657,3 +680,4 @@ void Empty_Records()
 	button[Determine].end_x = button[Backtrack].end_x;
 	button[Determine].end_y = button[Backtrack].end_y;
 }
+

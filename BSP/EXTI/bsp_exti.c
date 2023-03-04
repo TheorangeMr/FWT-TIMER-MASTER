@@ -45,15 +45,13 @@ void Exti_Init(void)
 //开启中断函数
 void Exti_Open(void)
 {
-	TIM_ITConfig(ADVANCE_TIMEX, TIM_IT_CC1, ENABLE);		                    //禁止捕获/比较1中断
-//  EXTI_ClearITPendingBit(EXTI_Line8);
-//	EXTI->IMR |= (EXTI_Line8);
+  EXTI_ClearITPendingBit(EXTI_Line8);
+	EXTI->IMR |= (EXTI_Line8);
 }
 
 //关闭外部中断函数
 void Exti_Close(void)
 {
-	TIM_ITConfig(ADVANCE_TIMEX, TIM_IT_CC1, ENABLE);		                    //禁止捕获/比较1中断
-//  EXTI_ClearITPendingBit(EXTI_Line8);
-//	EXTI->IMR &= ~(EXTI_Line8);
+  EXTI_ClearITPendingBit(EXTI_Line8);
+	EXTI->IMR &= ~(EXTI_Line8);
 }
