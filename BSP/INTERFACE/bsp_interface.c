@@ -22,7 +22,7 @@ vu8 InterfaceFlag = 0;                 //界面标志
 
 extern uint8_t Connection_count;
 extern uint16_t timer_slave[timer_slave_max];
-
+extern uint8_t  EM5820_flag;
 
 /*
 	*APIname：MainMenu()
@@ -37,23 +37,44 @@ void MainMenu(void)
 	ILI9486_clear_screen(0, 10, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH-10);  //清屏
 	vTaskDelay(100);
 	
-	ILI9486_showstring_Ch(88, 80, (u8*)"计时器", GB2312_32X32);
-	ILI9486_showstring_En(184, 80, (u8*)"6.0", ASCII_16X32);
-	ILI9486_showstring_Ch(100, 140, (u8*)"Ⅰ、单圈测试", GB2312_24X24);
-	ILI9486_showstring_Ch(100, 180, (u8*)"Ⅱ、多从机测试", GB2312_24X24);
-	ILI9486_showstring_Ch(100, 220, (u8*)"Ⅲ、热敏打印", GB2312_24X24);
+	ILI9486_showstring_Ch(88, 80, (u8*)"测试器", GB2312_32X32);
+	ILI9486_showstring_En(184, 80, (u8*)"1.0", ASCII_16X32);
+	ILI9486_showstring_Ch(80, 140, (u8*)"Ⅰ、单圈测试", GB2312_24X24);
+	ILI9486_showstring_Ch(80, 180, (u8*)"Ⅱ、多从机测试", GB2312_24X24);
+	if(EM5820_flag == 0)
+	{
+		ILI9486_clear_screen(80, 220, ILI9486_SCREEN_LESSWIDTH, 24);
+		ILI9486_showstring_Ch(80, 220, (u8*)"Ⅲ、热敏打印：开", GB2312_24X24);
+	}
+	else
+	{
+		ILI9486_clear_screen(80, 220, ILI9486_SCREEN_LESSWIDTH, 24);
+		ILI9486_showstring_Ch(80, 220, (u8*)"Ⅲ、热敏打印：关", GB2312_24X24);
+	}
+	ILI9486_showstring_Ch(80, 260, (u8*)"Ⅳ、三轴加速度测试", GB2312_24X24);	
+	ILI9486_showstring_Ch(80, 300, (u8*)"Ⅴ、制动盘温度测试", GB2312_24X24);
+	ILI9486_showstring_Ch(80, 340, (u8*)"Ⅵ、悬架位移测试", GB2312_24X24);
+//Ⅶ
 
 	if (SelectFlag == 1)
 	{
-		ILI9486_showstring_Ch(70, 140, (u8*)"◆", GB2312_24X24);
+		ILI9486_showstring_Ch(50, 140, (u8*)"◆", GB2312_24X24);
 	}
 	else if(SelectFlag == 2)
 	{
-		ILI9486_showstring_Ch(70, 180, (u8*)"◆", GB2312_24X24);
+		ILI9486_showstring_Ch(50, 180, (u8*)"◆", GB2312_24X24);
 	}
-		else if(SelectFlag == 3)
+	else if(SelectFlag == 3)
 	{
-		ILI9486_showstring_Ch(70, 220, (u8*)"◆", GB2312_24X24);
+		ILI9486_showstring_Ch(50, 220, (u8*)"◆", GB2312_24X24);
+	}
+	else if(SelectFlag == 4)
+	{
+		ILI9486_showstring_Ch(50, 260, (u8*)"◆", GB2312_24X24);
+	}
+	else if(SelectFlag == 5)
+	{
+		ILI9486_showstring_Ch(50, 300, (u8*)"◆", GB2312_24X24);
 	}
 	button[Up].ButtonDraw(&button[Up]);
 	button[Down].ButtonDraw(&button[Down]);
@@ -86,14 +107,16 @@ void Lap_Test_Menu(void)
 	button[Backtrack].ButtonDraw(&button[Backtrack]);
 }
 
+
 /*
-	*函数名：Show_Data()
-	*功  能：显示当前测试数据
-	*参  数： zdata：测试数据
-	*返回值： 无
-	*作  者： 王峰
-	*日  期： 2020.11.07
+	*APIname：Show_Data()
+	*brief：  显示当前测试数据函数
+	*param：  u16 zdata, u16 pos_y
+	*retval： 无
+	*author： 罗成
+	*data：   2023.1.15
 */
+
 void Show_Data(u16 zdata, u16 pos_y)
 {
 	u16 temp = zdata;
@@ -221,13 +244,15 @@ void Multi_slave_function_interface(void)
 }
 
 /*
-	*函数名：Show_LapRecords()
-	*功  能：显示单圈测试记录
-	*参  数： zdata: 加速测试数据缓存区
-	*返回值： 无
-	*作  者： 王峰,罗成
-	*日  期： 2021.09.02 修改：2023.1.15
+	*APIname：Show_LapRecords()
+	*brief：  显示单圈测试记录
+	*param：  zdata: 单圈测试数据缓存区
+	*retval： 无
+	*author： 罗成
+	*data：   2023.1.15
 */
+
+
 void Show_LapRecords(u16* zdata, u16 DataCount)
 {
 	u16 temp;
@@ -305,13 +330,14 @@ void Show_LapRecords(u16* zdata, u16 DataCount)
 }
 
 /*
-	*函数名：Show_AcceleratedRecords()
-	*功  能：显示加速测试记录
-	*参  数： zdata: 加速测试数据缓存区
-	*返回值： 无
-	*作  者： 王峰,罗成
-	*日  期： 2021.09.02 修改：2023.1.15
+	*APIname：Show_AcceleratedRecords()
+	*brief：  显示区间测试记录
+	*param：  zdata: 区间测试数据缓存区
+	*retval： 无
+	*author： 罗成
+	*data：   2023.1.15
 */
+
 void Show_AcceleratedRecords(u16* zdata, u16 DataCount)
 {
 	ILI9486_clear_screen(0, 80, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH);//清屏
@@ -389,14 +415,16 @@ void Show_AcceleratedRecords(u16* zdata, u16 DataCount)
 
 
 
+
 /*
-	*函数名：Page_Down()
-	*功  能：下一页
-	*参  数： 
-	*返回值： 无
-	*作  者： 王峰,罗成
-	*日  期： 2021.09.01  修改：2023.1.15
+	*APIname：Page_Down()
+	*brief：  向下翻一页
+	*param：  无
+	*retval： 无
+	*author： 罗成
+	*data：   2023.1.15
 */
+
 void Page_Down(u16* zdata, u16 DataCount)
 {
 	/* 如果是最后一页 */
@@ -510,13 +538,15 @@ void Page_Down(u16* zdata, u16 DataCount)
 }
 
 /*
-	*函数名：Page_Up()
-	*功  能：上一页
-	*参  数： 
-	*返回值： 无
-	*作  者： 王峰，罗成
-	*日  期： 2021.09.01 ，修改：2023.1.15
+	*APIname：Page_Up()
+	*brief：  向上翻一页
+	*param：  无
+	*retval： 无
+	*author： 罗成
+	*data：   2023.1.15
 */
+
+
 void Page_Up(u16* zdata, u16 DataCount)
 {
 	u16 temp;
@@ -644,14 +674,16 @@ void Page_Up(u16* zdata, u16 DataCount)
 	}
 }
 
+
 /*
-	*函数名：Empty_Records()
-	*功  能：清空测试记录
-	*参  数： 无
-	*返回值： 无
-	*作  者： 王峰
-	*日  期： 2020.10.24
+	*APIname：Empty_Records()
+	*brief：  清空测试记录
+	*param：  无
+	*retval： 无
+	*author： 罗成
+	*data：   2023.1.15
 */
+
 void Empty_Records()
 {
 	ILI9486_clear_screen(0, 80, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH - 40);//清屏

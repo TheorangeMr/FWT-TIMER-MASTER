@@ -39,6 +39,8 @@
 ".\objects\gt30l32s4w.o"
 ".\objects\bsp_beep.o"
 ".\objects\as32-100-c.o"
+".\objects\bsp_iwdg.o"
+".\objects\dp_print_lib.o"
 ".\objects\croutine.o"
 ".\objects\event_groups.o"
 ".\objects\list.o"

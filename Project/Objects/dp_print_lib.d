@@ -1,0 +1,33 @@
+.\objects\dp_print_lib.o: ..\BSP\EM5820\DP_Print_lib.c
+.\objects\dp_print_lib.o: ..\BSP\EM5820\DP_Print_inc.h
+.\objects\dp_print_lib.o: ..\BSP\USART\bsp_usart.h
+.\objects\dp_print_lib.o: D:\software\keil 5 install\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\dp_print_lib.o: ..\Library\CMSIS\stm32f10x.h
+.\objects\dp_print_lib.o: ..\Library\CMSIS\core_cm3.h
+.\objects\dp_print_lib.o: D:\software\keil 5 install\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\dp_print_lib.o: ..\Library\CMSIS\system_stm32f10x.h
+.\objects\dp_print_lib.o: ..\User\stm32f10x_conf.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_adc.h
+.\objects\dp_print_lib.o: ..\Library\CMSIS\stm32f10x.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_bkp.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_can.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_cec.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_crc.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_dac.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_dbgmcu.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_dma.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_exti.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_flash.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_fsmc.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_gpio.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_i2c.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_iwdg.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_pwr.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_rcc.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_rtc.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_sdio.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_spi.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_tim.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_usart.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\stm32f10x_wwdg.h
+.\objects\dp_print_lib.o: ..\Library\STM32F10x_StdPeriph_Driver\inc\misc.h

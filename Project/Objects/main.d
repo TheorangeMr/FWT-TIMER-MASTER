@@ -43,6 +43,8 @@
 .\objects\main.o: ..\FreeRtos\include\semphr.h
 .\objects\main.o: ..\FreeRtos\include\queue.h
 .\objects\main.o: D:\software\keil 5 install\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\main.o: D:\software\keil 5 install\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\main.o: D:\software\keil 5 install\ARM\ARMCC\Bin\..\include\string.h
 .\objects\main.o: ..\BSP\USART\bsp_usart.h
 .\objects\main.o: ..\BSP\TIMER\bsp_timer.h
 .\objects\main.o: ..\BSP\KEY\bsp_key.h
@@ -55,3 +57,5 @@
 .\objects\main.o: ..\User\delay-FreeRTOS\bsp_delay.h
 .\objects\main.o: ..\BSP\BEEP\bsp_beep.h
 .\objects\main.o: ..\BSP\LOAR\as32-100-c.h
+.\objects\main.o: ..\BSP\IWDG\bsp_iwdg.h
+.\objects\main.o: ..\BSP\EM5820\DP_Print_inc.h

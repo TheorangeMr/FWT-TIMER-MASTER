@@ -169,6 +169,12 @@
  */
 #define configUSE_TICKLESS_IDLE													0  
 
+//低功耗API接口
+#define configPRE_SLEEP_PROCESSING                      PreSleepProcessing
+#define configPOST_SLEEP_PROCESSING											PostSleepProcessing
+
+extern void PreSleepProcessing(uint32_t ulExpectedIdleTime);
+extern void PostSleepProcessing(uint32_t ulExpectedIdeTime);
 
 /********************************************************************
                 FreeRTOS与协程有关的配置选项                                                
@@ -231,7 +237,7 @@ NVIC value of 255. */   //中断最低优先级
 //启用运行时间统计功能
 #define configGENERATE_RUN_TIME_STATS	        0             
  //启用可视化跟踪调试
-#define configUSE_TRACE_FACILITY				      0    
+#define configUSE_TRACE_FACILITY				      0
 /* 与宏configUSE_TRACE_FACILITY同时为1时会编译下面3个函数
  * prvWriteNameToBuffer()
  * vTaskList(),
@@ -239,7 +245,10 @@ NVIC value of 255. */   //中断最低优先级
 */
 #define configUSE_STATS_FORMATTING_FUNCTIONS	1
 
+extern volatile uint32_t CPU_RunTime;
 
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()     (CPU_RunTime = 0ul)
+#define portGET_RUN_TIME_COUNTER_VALUE()             CPU_RunTime
 
 /****************************************************************
             FreeRTOS与中断服务函数有关的配置选项                         

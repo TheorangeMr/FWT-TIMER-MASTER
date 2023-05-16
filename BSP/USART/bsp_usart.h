@@ -6,6 +6,7 @@
 
 void uart1_init(u32 bound);
 void uart2_init(u32 bound);
+void uart3_init(u32 bound);
 
 #endif
 

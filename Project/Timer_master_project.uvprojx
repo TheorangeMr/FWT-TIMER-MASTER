@@ -134,11 +134,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>-1</DriverSelection>
+            <DriverSelection>4096</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_MD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\FreeRtos\include;..\FreeRtos\portable\ARM_CM3;..\User;..\Library\STM32F10x_StdPeriph_Driver\inc;..\Library\CMSIS;..\User\delay-FreeRTOS;..\BSP\USART;..\BSP\TIMER;..\BSP\KEY;..\BSP\EXTI;..\BSP\INTERFACE;..\BSP\GT30132S4;..\BSP\ILI9486;..\BSP\BUTTON;..\BSP\SPI;..\BSP\BEEP;..\BSP\LOAR</IncludePath>
+              <IncludePath>..\FreeRtos\include;..\FreeRtos\portable\ARM_CM3;..\User;..\Library\STM32F10x_StdPeriph_Driver\inc;..\Library\CMSIS;..\User\delay-FreeRTOS;..\BSP\USART;..\BSP\TIMER;..\BSP\KEY;..\BSP\EXTI;..\BSP\INTERFACE;..\BSP\GT30132S4;..\BSP\ILI9486;..\BSP\BUTTON;..\BSP\SPI;..\BSP\BEEP;..\BSP\LOAR;..\BSP\IWDG;..\BSP\EM5820</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -612,6 +612,16 @@
               <FileName>as32-100-c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\LOAR\as32-100-c.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\IWDG\bsp_iwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>DP_Print_lib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\EM5820\DP_Print_lib.c</FilePath>
             </File>
           </Files>
         </Group>
