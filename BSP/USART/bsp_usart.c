@@ -105,7 +105,7 @@ void uart2_init(u32 bound)
 
 	USART_ClearITPendingBit(USART2, USART_IT_RXNE);	
 	USART_ClearFlag(USART2, USART_FLAG_RXNE);	
-	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);                  //开启串口接收中断
+	USART_ITConfig(USART2, USART_IT_RXNE, DISABLE);                  //开启串口接收中断
 	USART_Cmd(USART2, DISABLE);                                     //关闭串口2
 }
 

@@ -8,42 +8,42 @@
 
 extern vu16 Time1value;
 
-void TIMER4_Init(u16 arr,u16 psc)
-{
-	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure;
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4,ENABLE);            //使能定时器时钟
-	
-	TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up;  //设置为向上计数模式
-	TIM_TimeBaseInitStructure.TIM_ClockDivision=TIM_CKD_DIV1;
-	TIM_TimeBaseInitStructure.TIM_Period=arr;                      //自动装载初值
-	TIM_TimeBaseInitStructure.TIM_Prescaler=psc;                   //预分频系数
-	TIM_TimeBaseInit(TIM4,&TIM_TimeBaseInitStructure);             //初始化定时器
-    
-  TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);                   //使能更新中断前清除更新中断标志，
-                                                                 //防止一开始使能就进入更新中断
-	TIM_ITConfig(TIM4,TIM_IT_Update,ENABLE);                       //开启定时器3更新中断
-	TIM_Cmd(TIM4,DISABLE);
-	
-	NVIC_InitStructure.NVIC_IRQChannel=TIM4_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority=0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
-	NVIC_Init(&NVIC_InitStructure);
-}
+//void TIMER4_Init(u16 arr,u16 psc)
+//{
+//	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+//	NVIC_InitTypeDef NVIC_InitStructure;
+//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4,ENABLE);            //使能定时器时钟
+//	
+//	TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up;  //设置为向上计数模式
+//	TIM_TimeBaseInitStructure.TIM_ClockDivision=TIM_CKD_DIV1;
+//	TIM_TimeBaseInitStructure.TIM_Period=arr;                      //自动装载初值
+//	TIM_TimeBaseInitStructure.TIM_Prescaler=psc;                   //预分频系数
+//	TIM_TimeBaseInit(TIM4,&TIM_TimeBaseInitStructure);             //初始化定时器
+//    
+//  TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);                   //使能更新中断前清除更新中断标志，
+//                                                                 //防止一开始使能就进入更新中断
+//	TIM_ITConfig(TIM4,TIM_IT_Update,ENABLE);                       //开启定时器3更新中断
+//	TIM_Cmd(TIM4,DISABLE);
+//	
+//	NVIC_InitStructure.NVIC_IRQChannel=TIM4_IRQn;
+//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2;
+//	NVIC_InitStructure.NVIC_IRQChannelSubPriority=0;
+//	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
+//	NVIC_Init(&NVIC_InitStructure);
+//}
 
-void Timer4_Open(void)
-{
-	TIM_SetCounter(TIM4,0);                                                     //定时器的值清零
-	TIM_Cmd(TIM4,ENABLE);                                                       //使能定时器3
-}
+//void Timer4_Open(void)
+//{
+//	TIM_SetCounter(TIM4,0);                                                     //定时器的值清零
+//	TIM_Cmd(TIM4,ENABLE);                                                       //使能定时器3
+//}
 
 
-void Timer4_Off(void)
-{
-  TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);
-	TIM_Cmd(TIM4,DISABLE);                                                      //不使能定时器3
-}
+//void Timer4_Off(void)
+//{
+//  TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);
+//	TIM_Cmd(TIM4,DISABLE);                                                      //不使能定时器3
+//}
 
 void TIMER3_Init(u16 arr,u16 psc)
 {

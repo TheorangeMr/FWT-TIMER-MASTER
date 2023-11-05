@@ -40,7 +40,6 @@ vu8 Timer1flag = 0;
 vu8 EXTIX_Flag = 0;
 
 
-
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
   */
@@ -257,8 +256,10 @@ void ADVANCE_TIM1_IRQHandler(void)
 	{
 		TIM_ClearITPendingBit(TIM1,TIM_FLAG_Update);
 		Time1value++;
-		if(Time1value >= 10)                                                //防止变量溢出程序跑飞
+//		if(Time1value >= 10)                                             
+		if(Time1value >= 20000)
 		{
+			printf("tim1\r\n");
 			pxHigherPriorityTaskWoken = pdFALSE;
 			xResult = xSemaphoreGiveFromISR(BinarySem2_Handle ,&pxHigherPriorityTaskWoken);
 			if(xResult != pdFAIL)
@@ -271,14 +272,14 @@ void ADVANCE_TIM1_IRQHandler(void)
 	}
 }
 
-void TIM4_IRQHandler(void)
-{
-	if(TIM_GetITStatus(TIM4,TIM_FLAG_Update)!=RESET)
-	{
-		TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);
-		buchang_time++;
-	}
-}
+//void TIM4_IRQHandler(void)
+//{
+//	if(TIM_GetITStatus(TIM4,TIM_FLAG_Update)!=RESET)
+//	{
+//		TIM_ClearITPendingBit(TIM4,TIM_FLAG_Update);
+//		buchang_time++;
+//	}
+//}
 
 
 

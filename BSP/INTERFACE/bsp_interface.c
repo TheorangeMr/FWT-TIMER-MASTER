@@ -37,8 +37,8 @@ void MainMenu(void)
 	ILI9486_clear_screen(0, 10, ILI9486_SCREEN_LESSWIDTH, ILI9486_SCREEN_MOREWIDTH-10);  //清屏
 	vTaskDelay(100);
 	
-	ILI9486_showstring_Ch(88, 80, (u8*)"测试器", GB2312_32X32);
-	ILI9486_showstring_En(184, 80, (u8*)"1.0", ASCII_16X32);
+	ILI9486_showstring_Ch(56, 80, (u8*)"激光计时器", GB2312_32X32);
+	ILI9486_showstring_En(216, 80, (u8*)"1.0", ASCII_16X32);
 	ILI9486_showstring_Ch(80, 140, (u8*)"Ⅰ、单圈测试", GB2312_24X24);
 	ILI9486_showstring_Ch(80, 180, (u8*)"Ⅱ、多从机测试", GB2312_24X24);
 	if(EM5820_flag == 0)
@@ -51,11 +51,6 @@ void MainMenu(void)
 		ILI9486_clear_screen(80, 220, ILI9486_SCREEN_LESSWIDTH, 24);
 		ILI9486_showstring_Ch(80, 220, (u8*)"Ⅲ、热敏打印：关", GB2312_24X24);
 	}
-	ILI9486_showstring_Ch(80, 260, (u8*)"Ⅳ、三轴加速度测试", GB2312_24X24);	
-	ILI9486_showstring_Ch(80, 300, (u8*)"Ⅴ、制动盘温度测试", GB2312_24X24);
-	ILI9486_showstring_Ch(80, 340, (u8*)"Ⅵ、悬架位移测试", GB2312_24X24);
-//Ⅶ
-
 	if (SelectFlag == 1)
 	{
 		ILI9486_showstring_Ch(50, 140, (u8*)"◆", GB2312_24X24);
@@ -67,14 +62,6 @@ void MainMenu(void)
 	else if(SelectFlag == 3)
 	{
 		ILI9486_showstring_Ch(50, 220, (u8*)"◆", GB2312_24X24);
-	}
-	else if(SelectFlag == 4)
-	{
-		ILI9486_showstring_Ch(50, 260, (u8*)"◆", GB2312_24X24);
-	}
-	else if(SelectFlag == 5)
-	{
-		ILI9486_showstring_Ch(50, 300, (u8*)"◆", GB2312_24X24);
 	}
 	button[Up].ButtonDraw(&button[Up]);
 	button[Down].ButtonDraw(&button[Down]);

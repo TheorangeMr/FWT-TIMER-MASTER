@@ -42,6 +42,8 @@
 #include "bsp_iwdg.h"
 #include "DP_Print_inc.h"
 
+extern vu16 a;
+
 
 /*
 *************************************************************************
@@ -177,6 +179,7 @@ uint16_t DataBuffer2[1024] = {0};           //单圈测试数据缓存区
 uint16_t Data1_Count = 0;                  //加速测试数据计数器
 uint16_t Data2_Count = 0;                  //单圈测试数据计数器
 uint16_t timer_slave[timer_slave_max] = {0};
+//uint16_t timer_slave1[2][timer_slave_max] = {{0},{1,2,3,4,5,6}};
 uint16_t timer_slaver_num[timer_slave_max] = {0};
 uint8_t  slaver_flag = 0;
 uint8_t  slaver_count = 0;
@@ -184,7 +187,9 @@ uint8_t  EM5820_flag = 1;
 uint8_t  first_Print_flag = 0;
 uint32_t Cur_Data = 0;
 uint32_t Exti_Data[3] = {0};
-uint8_t  buchang_timesz[4] = {0};
+//uint8_t  buchang_timesz[4] = {0};
+uint8_t slaver_reset = 20;
+
 
 extern vu32 buchang_time;
 extern vu32 Time3value;
@@ -264,11 +269,10 @@ void BSP_Init(void)
 	Button_Init();
   AS32_Init();BEEP_Init();
 	Exti_Init();
-	TIMER1_Init(9999, 7199);                                                 //(7199+1)分频，计数（4999+1）次     1s
-	
-	TIMER4_Init(999, 72-1);																											//(7199+1)分频，计数（4999+1）次     1ms
+	TIMER1_Init(499, 71);
+//	TIMER4_Init(999, 72-1);																											//(7199+1)分频，计数（4999+1）次     1ms
 	TIMER3_Init(9999, 72-1);                                                       //(71+1)分频，计数（9999+1）次       10ms
-  TIMER2_Init(9999, 7199);                                                      //(7199+1)分频，计数（4999+1）次     1s
+//  TIMER2_Init(9999, 7199);                                                      //(7199+1)分频，计数（4999+1）次     1s
 
 	SPI_ILI9486_Init();
 	ILI9486_tftlcd_init();
@@ -286,7 +290,6 @@ void BSP_Init(void)
 	SelChineseChar();
 	InitializePrint(); 
 	delay_xms(500);
-	//	Timer2_Open();                                                                //打开定时器2定时喂狗
 }
 
 /***********************************************************************
@@ -440,12 +443,11 @@ static void AppTaskCreate(void)
 static void KeyScan_Task(void* parameter)
 {
 	uint8_t KeyValue;
-	while(1)
+	for(;;)
 	{
 		KeyValue = 0xff;
 		KeyValue = Key_Scan(0);
-	  if(KeyValue != 0xff)
-		{
+	  if(KeyValue != 0xff){
 			Button_Dealing(KeyValue);
 		}
 		vTaskDelay(50);
@@ -462,10 +464,9 @@ static void KeyScan_Task(void* parameter)
 static void EXTIX_DealTask(void* parameter)
 {
 	uint8_t cnt,i = 0;
-
 	static uint8_t n = 0;
 	char str[20] = { 0 };
-	while(1)
+	for(;;)
 	{
 		xSemaphoreTake(BinarySem1_Handle,portMAX_DELAY);
 		EXTIX_Flag = 0;
@@ -480,8 +481,7 @@ static void EXTIX_DealTask(void* parameter)
 			//单圈计时模式
 			if(1 == InterfaceFlag)
 			{
-				if(0 == Lap_stflag)
-				{
+				if(0 == Lap_stflag){
 					n = 0;
 					Timer3_Open();
 					Lap_stflag = 1;
@@ -490,11 +490,10 @@ static void EXTIX_DealTask(void* parameter)
 					ILI9486_clear_screen(130, 137, 150, 30);
 					ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
 					ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
-					if(first_Print_flag == 0)
-					{
+					if(first_Print_flag == 0){
 						xEventGroupSetBits(EventGroupHandler,EVENTBIT_1);                //置位热敏打印事件						
 					}
-				}
+				}//多从机
 				else
 				{
 					if(1 == n){Exti_Data[1] = Exti_Data[0];}
@@ -508,8 +507,7 @@ static void EXTIX_DealTask(void* parameter)
 					ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);           
 					Show_Data(Exti_Data[0] , 200);
 					xEventGroupSetBits(EventGroupHandler,EVENTBIT_1);
-					if(Data1_Count <= 1000)
-					{
+					if(Data1_Count <= 1000){
 						TestData_Save(Exti_Data[0]);
 					}
 					vTaskDelay(1000);                                //两秒延时处理是为了一次单圈计时结束后人机交互时显示‘结束’和后显示‘计时’做缓冲  
@@ -533,18 +531,16 @@ static void EXTIX_DealTask(void* parameter)
 				uint8_t j = 0;
 				Exti_Close();
 				Timer3_Open();
-				slaver_count = 0;
-				for(j = 0;j < slaver_count;j++)
-				{
+				for(j = 0;j < slaver_count;j++){
 					timer_slaver_num[j] = 0;
 				}
+				slaver_count = 0;
 				USART_Cmd(USART2, ENABLE);		//开串口
 				sprintf(str, "%s", "计时中");
 				ILI9486_clear_screen(130, 137, 150, 30);
 				ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
 				ILI9486_showstring_Ch(141, 140, (u8*)str, GB2312_24X24);
-				if(first_Print_flag == 0)
-				{
+				if(first_Print_flag == 0){
 					xEventGroupSetBits(EventGroupHandler,EVENTBIT_1);                //置位热敏打印事件						
 				}				
 			}
@@ -569,7 +565,7 @@ static void EXTIX_DealTask(void* parameter)
 static void USART2_DealTask(void* parameter)
 {
 	uint8_t rdata = 0;
-	while(1)
+	for(;;)
 	{
 		xSemaphoreTake(BinarySem2_Handle,portMAX_DELAY);
 //		printf("Sem");
@@ -648,10 +644,9 @@ static void USART2_DealTask(void* parameter)
 					}
 				}
 			}
-		USART_Cmd(USART2, ENABLE);
+		  USART_Cmd(USART2, ENABLE);
 		}
-		else if(Connection_count > timer_slave_max)
-		{
+		else if(Connection_count > timer_slave_max){
 				ILI9486_showstring_Ch(20, Showhigh, (u8*)"从机连接数量已满", GB2312_24X24);
 		}
 	}
@@ -690,12 +685,11 @@ static void USART2_DealTask(void* parameter)
   ********************************************************************/
 static void Face_SwitchTask(void* parameter)
 {
-	while(1)
+	for(;;)
 	{
 		if(0 == InterfaceFlag)
 		{
-			if(EXTIX_Flag == 1)
-			{
+			if(EXTIX_Flag == 1){
 				EXTIX_Flag = 0;
 				xSemaphoreTake(BinarySem1_Handle,portMAX_DELAY);
 			}
@@ -717,8 +711,11 @@ static void Face_SwitchTask(void* parameter)
 		{
 			printf("从机数量检测界面\n\r");
 			USART_Cmd(USART2, ENABLE);//打开串口
-//			USART_SendData(USART2, 0xb1);
-//		  printf("USART2_ENABLE\r\n");
+			for(uint8_t t = 0;t<10;t++){
+				USART_SendData(USART2 ,slaver_reset);
+				vTaskDelay(5);
+			}
+			USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
 			Slaver_Check_Interface();//从机数量检测界面
 			xEventGroupClearBits(EventGroupHandler,EVENTBIT_0);
 		}
@@ -756,12 +753,10 @@ static void Face_SwitchTask(void* parameter)
   ********************************************************************/
 static void TestData_Save(uint16_t Timevalue)
 {
-	if(1 == InterfaceFlag)
-	{
+	if(1 == InterfaceFlag){
 		DataBuffer1[Data1_Count++] = Timevalue;
 	}
-	else if(3 == InterfaceFlag)
-	{
+	else if(3 == InterfaceFlag){
 		DataBuffer2[Data2_Count++] = Timevalue;
 	}
 }
@@ -781,10 +776,8 @@ inline static void Usart_Handle(uint8_t rd)
 	if((rd&0x0f) >0&&(rd&0x0f)<=timer_slave_max)
 	{
 //		printf("接受从机数据\r\n");
-		for(j = 0; j<slaver_count; j++)
-		{
-			if((rd&0x0f) == timer_slaver_num[j])
-			{
+		for(j = 0; j<slaver_count; j++){
+			if((rd&0x0f) == timer_slaver_num[j]){
 //				printf("从机重复触发\r\n");
 				m = 1;
 				break;
@@ -792,19 +785,22 @@ inline static void Usart_Handle(uint8_t rd)
 		}
 		if(m == 0)
 		{
-			Cur_Data = Time3value-(rd&0xf0)*5;
-      if(Cur_Data > 60000){Cur_Data = 0;}				//溢出处理
+			if((Time3value-(rd&0xf0)*5) <= 60000){//溢出处理
+				Cur_Data = Time3value-((rd&0xf0)>>4)*5;
+			}
+			else{
+				printf("Time3value = %d,rd = %d\r\n",Time3value,((rd&0xf0)>>4)*5);
+				Cur_Data = 0;
+			}	
 			ILI9486_clear_screen(200, 190+40*slaver_count, 90, 30);
 			Show_Data(Cur_Data , 190+40*slaver_count);									//数据显示
 			xEventGroupSetBits(EventGroupHandler,EVENTBIT_1);
-			if(Data2_Count <= 1000)
-			{
+			if(Data2_Count <= 1000){
 				TestData_Save(Cur_Data);
 			}
 			timer_slaver_num[slaver_count] = (rd&0x0f);
 //			printf("%d\r\n",timer_slaver_num[slaver_count]);
-			while(n--)
-			{
+			while(n--){
 				USART_SendData(USART2,(rd&0x0f)+0xf0);               /*给从机发送停止信号*/		
 				vTaskDelay(1);
 			}
@@ -834,8 +830,7 @@ inline static void Usart_Handle(uint8_t rd)
 		ILI9486_clear_screen(130, 137, 150, 30);
 		ILI9486_draw_rectangle(130, 137, 150, 30, BLUE);
 		ILI9486_showstring_Ch(141, 140, (u8*)"准备计时", GB2312_24X24);
-		for(j = 0;j < slaver_count;j++)
-		{
+		for(j = 0;j < slaver_count;j++){
 			timer_slaver_num[j] = 0;
 		}
 		slaver_count = 0; 
@@ -854,19 +849,17 @@ static void BEEP_CheckoutTask(void* parameter)
 {
 	static uint8_t beep_status = 0;
 	EventBits_t r_event;
-	while(1)
+	for(;;)
 	{
 		r_event = xEventGroupWaitBits(EventGroupHandler,EVENTBIT_0,pdFALSE,pdTRUE,portMAX_DELAY); //pdFALSE：不清除该事件标志位
 		if((r_event&EVENTBIT_0) == EVENTBIT_0)
 		{
 			beep_status = GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8);
-			if(beep_status == 0)
-			{
+			if(beep_status == 0){
 				BEEP(1);
 				vTaskDelay(200);
 			}
-			else
-			{
+			else{
 				BEEP(0);
 				vTaskDelay(1);		
 			}
@@ -883,7 +876,7 @@ static void BEEP_CheckoutTask(void* parameter)
 
 static void IWDG_Task(void* pvParameters)
 {
-	while(1)
+	for(;;)
 	{
 //		printf("IWDG_ReloadCounter \r\n");
 		IWDG_ReloadCounter();
@@ -902,40 +895,34 @@ static void EM5820_Print_Task(void* parameter)
 	uint8_t buf[100]={0};
 	static uint16_t print_count = 1;
 	EventBits_t r_event;
-	while(1)
+	for(;;)
 	{
 		r_event = xEventGroupWaitBits(EventGroupHandler,EVENTBIT_1,pdTRUE,pdTRUE,portMAX_DELAY); //pdFALSE：不清除该事件标志位
-		if((r_event&EVENTBIT_1) == EVENTBIT_1)
-		{
+		if((r_event&EVENTBIT_1) == EVENTBIT_1){
 			if(EM5820_flag == 0)              //允许热敏打印
 			{
 				print_count++;
-				if(first_Print_flag == 0)
-				{
+				if(first_Print_flag == 0){
 					first_Print_flag = 1;
 					print_count = 0;
-					if(InterfaceFlag == 1)
-					{
+					if(InterfaceFlag == 1){
 						InitializePrint();
 						Print_ASCII(" 单圈测试数据:");
 						select_lines(1);   /* 换行1次 */
 					}
-					else if(InterfaceFlag == 3)
-					{
+					else if(InterfaceFlag == 3){
 						InitializePrint();
 						Print_ASCII(" 区间测试数据:");
 						select_lines(1);
 					}
 				}
-				else if(InterfaceFlag == 1)
-				{
+				else if(InterfaceFlag == 1){
 					InitializePrint();
 					sprintf((char *)buf,"1-Data%d  :  %.2fs",print_count,(float)Exti_Data[0]/100);
 					Print_ASCII(buf);
 					select_lines(1);
 				}
-				else if(InterfaceFlag == 3)
-				{
+				else if(InterfaceFlag == 3){
 					InitializePrint();
 					sprintf((char *)buf,"2-Data%d  :  %.2fs",print_count,(float)Cur_Data/100);
 					Print_ASCII(buf);

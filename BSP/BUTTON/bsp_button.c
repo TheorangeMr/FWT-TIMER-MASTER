@@ -406,7 +406,7 @@ static void Up_Fun(void)
 	if(InterfaceFlag == 0)                                          /* 主界面 */
 	{
 		SelectFlag--;
-		if (SelectFlag < 1) SelectFlag = 6;                                       
+		if (SelectFlag < 1) SelectFlag = 3;                                       
 		if (SelectFlag == 1)
 		{
 			ILI9486_clear_screen(50, 180, 30, 30);
@@ -417,26 +417,11 @@ static void Up_Fun(void)
 			ILI9486_clear_screen(50, 220, 30, 30);
 			ILI9486_showstring_Ch(50, 180, (u8*)"◆", GB2312_24X24);
 		}
-		else if(SelectFlag == 3)                                                                       
-		{
-			ILI9486_clear_screen(50, 260, 30, 30);
-			ILI9486_showstring_Ch(50, 220, (u8*)"◆", GB2312_24X24);			
-		}
-		else if(SelectFlag == 4)                                                                       
-		{
-			ILI9486_clear_screen(50, 300, 30, 30);
-			ILI9486_showstring_Ch(50, 260, (u8*)"◆", GB2312_24X24);			
-		}
-		else if(SelectFlag == 5)                                                              
-		{
-			ILI9486_clear_screen(50, 340, 30, 30);
-			ILI9486_showstring_Ch(50, 300, (u8*)"◆", GB2312_24X24);			
-		}
-		else                                                                     
+		else                                                                       
 		{
 			ILI9486_clear_screen(50, 140, 30, 30);
-			ILI9486_showstring_Ch(50, 340, (u8*)"◆", GB2312_24X24);			
-		}	
+			ILI9486_showstring_Ch(50, 220, (u8*)"◆", GB2312_24X24);			
+		}
 	}
 	else if(4 == InterfaceFlag)                                    /* 单圈测试数据界面 */
 	{
@@ -454,11 +439,11 @@ static void Down_Fun(void)
 	if(InterfaceFlag == 0)
 	{
 		SelectFlag++;
-		if (SelectFlag > 6) SelectFlag = 1;
+		if (SelectFlag > 3) SelectFlag = 1;
 		
 		if (SelectFlag == 1)
 		{
-			ILI9486_clear_screen(50, 340, 30, 30);
+			ILI9486_clear_screen(50, 220, 30, 30);
 			ILI9486_showstring_Ch(50, 140, (u8*)"◆", GB2312_24X24);
 		}
 		else if(SelectFlag == 2)
@@ -466,26 +451,11 @@ static void Down_Fun(void)
 			ILI9486_clear_screen(50, 140, 30, 30);
 			ILI9486_showstring_Ch(50, 180, (u8*)"◆", GB2312_24X24);
 		}
-		else if(SelectFlag == 3)
+		else
 		{
 			ILI9486_clear_screen(50, 180, 30, 30);
 			ILI9486_showstring_Ch(50, 220, (u8*)"◆", GB2312_24X24);
-		}
-		else if(SelectFlag == 4)                                                                       
-		{
-			ILI9486_clear_screen(50, 220, 30, 30);
-			ILI9486_showstring_Ch(50, 260, (u8*)"◆", GB2312_24X24);			
-		}
-		else if(SelectFlag == 5)
-		{
-			ILI9486_clear_screen(50, 260, 30, 30);
-			ILI9486_showstring_Ch(50, 300, (u8*)"◆", GB2312_24X24);			
-		}
-		else
-		{
-			ILI9486_clear_screen(50, 300, 30, 30);
-			ILI9486_showstring_Ch(50, 340, (u8*)"◆", GB2312_24X24);			
-		}
+		}	
 	}
 	else if(4 == InterfaceFlag)                                                       
 	{
