@@ -178,8 +178,7 @@ uint16_t DataBuffer1[1024] = {0};           //加速测试数据缓存区
 uint16_t DataBuffer2[1024] = {0};           //单圈测试数据缓存区
 uint16_t Data1_Count = 0;                  //加速测试数据计数器
 uint16_t Data2_Count = 0;                  //单圈测试数据计数器
-uint16_t timer_slave[timer_slave_max] = {0};
-//uint16_t timer_slave1[2][timer_slave_max] = {{0},{1,2,3,4,5,6}};
+uint8_t timer_slave[2][timer_slave_max] = {{0},{0,1,2,3,4,5}};
 uint16_t timer_slaver_num[timer_slave_max] = {0};
 uint8_t  slaver_flag = 0;
 uint8_t  slaver_count = 0;
@@ -622,7 +621,7 @@ static void USART2_DealTask(void* parameter)
 						{
 							for(j = 0; j<Connection_count; j++)
 							{
-								if(slaver_flag == timer_slave[j])
+								if(slaver_flag == timer_slave[0][j])
 								{
 									z = 1;
 									break;
@@ -632,7 +631,7 @@ static void USART2_DealTask(void* parameter)
 						if(0 == z)
 						{
 							uint8_t n = Connection_count++;
-							timer_slave[n--] = slaver_flag;
+							timer_slave[0][n--] = slaver_flag;
 //							printf("%d\r\n",Connection_count);
 							ILI9486_showstring_Ch(20, Showhigh, (u8*)"已连接从机：", GB2312_24X24);
 							s2 = slaver_flag + 0x30;
@@ -773,6 +772,7 @@ inline static void Usart_Handle(uint8_t rd)
 {
 	uint8_t j = 0,n = 5;
 	bool m = 0;
+	uint8_t slaver_display;
 	if((rd&0x0f) >0&&(rd&0x0f)<=timer_slave_max)
 	{
 //		printf("接受从机数据\r\n");
@@ -792,8 +792,14 @@ inline static void Usart_Handle(uint8_t rd)
 				printf("Time3value = %d,rd = %d\r\n",Time3value,((rd&0xf0)>>4)*5);
 				Cur_Data = 0;
 			}	
-			ILI9486_clear_screen(200, 190+40*slaver_count, 90, 30);
-			Show_Data(Cur_Data , 190+40*slaver_count);									//数据显示
+			for(uint8_t i = 0;i < Connection_count;i++){
+//				printf("slaver_namenum = %d\r\n",rd&0x0f);
+				if((rd&0x0f) == timer_slave[0][i]){
+					slaver_display = timer_slave[1][i];
+				}
+			}
+			ILI9486_clear_screen(200, 190+40*slaver_display, 90, 30);
+			Show_Data(Cur_Data , 190+40*slaver_display);									//数据显示
 			xEventGroupSetBits(EventGroupHandler,EVENTBIT_1);
 			if(Data2_Count <= 1000){
 				TestData_Save(Cur_Data);
@@ -807,7 +813,6 @@ inline static void Usart_Handle(uint8_t rd)
 			slaver_count++;
 		}
 //		printf("slaver_count = %d\r\n",slaver_count);
-		vTaskDelay(100);
 		USART_Cmd(USART2, ENABLE);
 	}
 	else
@@ -918,13 +923,13 @@ static void EM5820_Print_Task(void* parameter)
 				}
 				else if(InterfaceFlag == 1){
 					InitializePrint();
-					sprintf((char *)buf,"1-Data%d  :  %.2fs",print_count,(float)Exti_Data[0]/100);
+					sprintf((char *)buf,"单圈-Data%d  :  %.2fs",print_count,(float)Exti_Data[0]/100);
 					Print_ASCII(buf);
 					select_lines(1);
 				}
 				else if(InterfaceFlag == 3){
 					InitializePrint();
-					sprintf((char *)buf,"2-Data%d  :  %.2fs",print_count,(float)Cur_Data/100);
+					sprintf((char *)buf,"区间-Data%d  :  %.2fs",print_count,(float)Cur_Data/100);
 					Print_ASCII(buf);
 					select_lines(1);
 				}

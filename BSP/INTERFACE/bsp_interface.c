@@ -21,7 +21,7 @@ u8 SelectFlag = 1;                     //选择标志
 vu8 InterfaceFlag = 0;                 //界面标志
 
 extern uint8_t Connection_count;
-extern uint16_t timer_slave[timer_slave_max];
+extern uint8_t timer_slave[2][timer_slave_max];
 extern uint8_t  EM5820_flag;
 
 /*
@@ -153,10 +153,18 @@ void Connection_Count_Show(void)
 	if(Connection_count != 0)
 	{
 		uint8_t i = 0;
+		uint8_t m,n,t;
 		ILI9486_draw_rectangle(145, 10, 30+Connection_count*20,44, BLUE);
+		for(m = 0;m<Connection_count;m++){                  //冒泡排序
+			for(n = 0;n<Connection_count-n;n++){
+				if(timer_slave[0][n] > timer_slave[0][n+1]){
+					t = timer_slave[0][n];timer_slave[0][n] = timer_slave[0][n+1];timer_slave[0][n+1] = t;
+				}
+			}
+		}
 		for(i = 0;i < Connection_count;i++)
 		{
-			uint8_t dat = timer_slave[i] + 0x30;
+			uint8_t dat = timer_slave[0][i] + 0x30;
 			ILI9486_showstring_En(160+i*15, 20,(u8*)&dat, ASCII_12X24);
 		}
 	}
